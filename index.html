@@ -198,6 +198,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.6}
   </nav>
   <div class="sfooter">
     <div class="iron-rule"><strong>The Iron Rule of Context</strong>Paste your Practice Capital Summary from Agent 0 into every agent. Thin input = thin output.</div>
+    <div style="margin-top:10px;text-align:center"><button onclick="lsClear()" style="font-size:10px;color:rgba(255,255,255,.3);background:none;border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%">Clear saved data</button></div>
   </div>
 </aside>
 
@@ -205,6 +206,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.6}
   <div class="top-bar">
     <div class="tbt" id="topBarTitle">Dashboard <span>· PracticeEdge AI™</span></div>
     <div class="prog-cap"><div class="pips" id="pips"></div><span id="progLabel">23 agents ready</span></div>
+    <div id="saveIndicator" style="font-size:10px;color:var(--ink4);letter-spacing:.04em;opacity:0;transition:opacity .5s">✓ saved</div>
   </div>
   <div class="content" id="mainContent">
 
@@ -736,6 +738,7 @@ function showPanel(id){
   if(nav)nav.classList.add('active');
   const titles={home:'Dashboard',a0:'Agent 0 · Practice Capital Assessment',a1:'Agent 1 · Market Intelligence',a2:'Agent 2 · Business Development',a3:'Agent 3 · Client Engagement',a4:'Agent 4 · Execution & Operations',a5:'Agent 5 · Legal Research & Drafting',a6:'Agent 6 · Client Communication',a7:'Agent 7 · Collections & Billing',a8:'Agent 8 · Deadline & Docket',a9:'Agent 9 · Referral Manager',a10:'Agent 10 · Thought Leadership',a11:'Agent 11 · New Matter Intake',a12:'Agent 12 · Financial Intelligence',a13:'Agent 13 · Difficult Conversations',a14:'Agent 14 · Conflicts Management',a15:'Agent 15 · Matter Closing',a16:'Agent 16 · Practice Continuity',a17:'Agent 17 · CLE Compliance',a18:'Agent 18 · Trust Accounting',a19:'Agent 19 · Technology Risk',a20:'Agent 20 · Advertising Compliance',a21:'Agent 21 · Launch Pricing Strategy',a22:'Agent 22 · Practice Intelligence'};
   document.getElementById('topBarTitle').innerHTML=(titles[id]||id)+' <span>· PracticeEdge AI™</span>';
+  setTimeout(lsSave, 100);
 }
 
 function switchTab(agent,tab){
@@ -770,6 +773,7 @@ function savePCA(){
   document.getElementById('nn-a0').style.background='var(--success)';
   document.getElementById('nn-a0').style.color='#fff';
   alert('Practice Capital Summary saved and auto-filled into all agents.');
+  setTimeout(lsSave, 100);
 }
 
 function copyPCA(){navigator.clipboard.writeText(masterPCA).then(()=>alert('Copied!'));}
@@ -787,7 +791,7 @@ async function runAgent(id){
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const text=data.content.map(b=>b.text||'').join('\n');
-    load.classList.remove('show');txt.textContent=text;wrap.classList.add('show');
+    load.classList.remove('show');txt.textContent=text;wrap.classList.add('show');lsSave();
   }catch(err){load.classList.remove('show');txt.textContent='Connection error. Please try again.';wrap.classList.add('show');}
 }
 
@@ -873,6 +877,162 @@ function buildPrompt(id){
 
   return null;
 }
+
+// ─── localStorage Persistence ─────────────────────────────────────────────
+const LS_KEY = 'practiceEdgeAI_v3';
+const INPUT_IDS = ['a0-name', 'a0-years', 'a0-practice', 'a0-firm', 'a0-geo', 'a0-rate', 'a0-clients', 'a0-portable', 'a0-maybe', 'a0-referrals', 'a0-matters', 'a0-strengths', 'a0-gaps', 'a0-revenue', 'a1-pca', 'a1-targets', 'a1-geo', 'a1-companies', 'a1-narrative', 'a2-contact', 'a2-rel', 'a2-trigger', 'a2-outcome', 'a2-pca', 'a2-doc-client', 'a2-doc-context', 'a2-doc-pca', 'a2-doc-type', 'a3-client', 'a3-meeting-type', 'a3-context', 'a3-matter', 'a3-pca', 'a3-fee-matter', 'a3-fee-client', 'a3-rate', 'a3-hours', 'a3-fee-context', 'a4-outreach', 'a4-convos', 'a4-pipeline', 'a4-stuck', 'a4-coaching-q', 'a4-coaching-ctx', 'a5-type', 'a5-jurisdiction', 'a5-purpose', 'a5-terms', 'a5-special', 'a5-tone', 'a6-client', 'a6-type', 'a6-what', 'a6-key', 'a6-next', 'a6-tone', 'a6-pca', 'a7-client', 'a7-stage', 'a7-amount', 'a7-date', 'a7-days', 'a7-reason', 'a7-outcome', 'a8-matter', 'a8-jurisdiction', 'a8-trigger', 'a8-date', 'a8-client', 'a8-matterno', 'a9-source', 'a9-type', 'a9-last', 'a9-context', 'a9-pca', 'a10-type', 'a10-audience', 'a10-topic', 'a10-perspective', 'a10-experience', 'a10-length', 'a10-pca', 'a11-client', 'a11-matter', 'a11-described', 'a11-parties', 'a11-complexity', 'a11-fee', 'a11-flags', 'a12-month', 'a12-monthnum', 'a12-billed', 'a12-collected', 'a12-overhead', 'a12-worked', 'a12-billed-hrs', 'a12-target', 'a12-ar', 'a12-clients', 'a13-client', 'a13-type', 'a13-what', 'a13-emotion', 'a13-outcome', 'a13-fear', 'a14-client', 'a14-adverse', 'a14-related', 'a14-matter', 'a14-existing', 'a14-firm', 'a14-prior-matters', 'a14-new-matter', 'a14-waiver-client', 'a14-conflict-desc', 'a14-state', 'a15-client', 'a15-matter', 'a15-outcome', 'a15-trust', 'a15-fees', 'a15-docs', 'a15-state', 'a16-atty', 'a16-backup', 'a16-matters', 'a16-software', 'a16-trust', 'a17-state', 'a17-admission', 'a17-period', 'a17-completed', 'a17-practice', 'a17-specialty', 'a18-state', 'a18-bank', 'a18-fee-types', 'a18-software', 'a18-questions', 'a19-stack', 'a19-data', 'a19-state', 'a19-remote', 'a19-concerns', 'a20-state', 'a20-type', 'a20-content', 'a20-concerns', 'a21-pca', 'a21-rate', 'a21-market', 'a21-concern', 'a21-practice', 'a22-pca', 'a22-month', 'a22-outreach', 'a22-meetings', 'a22-fees', 'a22-signals'];
+const OUTPUT_IDS = ['a0', 'a1', 'a2-outreach', 'a2-doc', 'a3-prep', 'a3-fees', 'a4-weekly', 'a4-coaching', 'a5', 'a6', 'a7', 'a8', 'a9', 'a10', 'a11', 'a12', 'a13', 'a14-check', 'a14-lateral', 'a14-waiver', 'a15', 'a16', 'a17', 'a18', 'a19', 'a20', 'a21', 'a22'];
+
+function lsSave() {
+  try {
+    const state = {};
+    // Save all input values
+    INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) state['input_' + id] = el.value;
+    });
+    // Save all output text content
+    OUTPUT_IDS.forEach(id => {
+      const el = document.getElementById('text-' + id);
+      if (el && el.textContent) state['output_' + id] = el.textContent;
+      // Save output wrap visibility
+      const wrap = document.getElementById('output-' + id);
+      if (wrap) state['outputvis_' + id] = wrap.classList.contains('show');
+    });
+    // Save checklist states
+    document.querySelectorAll('.checklist li').forEach((li, i) => {
+      state['cl_' + i] = li.classList.contains('checked');
+    });
+    // Save current panel
+    const activePanel = document.querySelector('.panel.active');
+    if (activePanel) state['activePanel'] = activePanel.id.replace('panel-', '');
+    // Save active tabs
+    ['a2', 'a3', 'a4', 'a14'].forEach(agent => {
+      const activeTab = document.querySelector('#panel-' + agent + ' .tab-panel.active');
+      if (activeTab) state['tab_' + agent] = activeTab.id.replace(agent + '-tab-', '');
+    });
+    // Save masterPCA and PCA display state
+    state['masterPCA'] = masterPCA;
+    state['pcaSaved'] = masterPCA !== '';
+    // Save day card open states
+    document.querySelectorAll('.day-body').forEach((db, i) => {
+      state['day_' + i] = db.classList.contains('open');
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    const ind = document.getElementById('saveIndicator');
+    if (ind) { ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 1500); }
+  } catch(e) { console.warn('PracticeEdge save error:', e); }
+}
+
+function lsRestore() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+
+    // Restore input values
+    INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && state['input_' + id] !== undefined) el.value = state['input_' + id];
+    });
+
+    // Restore output text and visibility
+    OUTPUT_IDS.forEach(id => {
+      const el = document.getElementById('text-' + id);
+      if (el && state['output_' + id]) el.textContent = state['output_' + id];
+      const wrap = document.getElementById('output-' + id);
+      if (wrap && state['outputvis_' + id]) wrap.classList.add('show');
+    });
+
+    // Restore checklist states
+    document.querySelectorAll('.checklist li').forEach((li, i) => {
+      if (state['cl_' + i]) {
+        li.classList.add('checked');
+        const c = li.querySelector('.chk');
+        if (c) {
+          c.style.background = 'var(--success)';
+          c.style.borderColor = 'var(--success)';
+          c.style.color = '#fff';
+        }
+      }
+    });
+
+    // Restore day card open states
+    document.querySelectorAll('.day-body').forEach((db, i) => {
+      if (state['day_' + i]) db.classList.add('open');
+    });
+
+    // Restore masterPCA and PCA display
+    if (state['masterPCA']) {
+      masterPCA = state['masterPCA'];
+      const pcaDisp = document.getElementById('pcaDisp');
+      const pcaEmpty = document.getElementById('pcaEmpty');
+      const copyPCABtn = document.getElementById('copyPCABtn');
+      if (pcaDisp) { pcaDisp.textContent = masterPCA; pcaDisp.classList.add('show'); }
+      if (pcaEmpty) pcaEmpty.style.display = 'none';
+      if (copyPCABtn) copyPCABtn.style.display = 'inline-flex';
+      // Restore nn-a0 saved state indicator
+      const nn0 = document.getElementById('nn-a0');
+      if (nn0) { nn0.textContent = '✓'; nn0.style.background = 'var(--success)'; nn0.style.color = '#fff'; }
+    }
+
+    // Restore active tabs first (before panel switch)
+    ['a2', 'a3', 'a4', 'a14'].forEach(agent => {
+      if (state['tab_' + agent]) {
+        const tabKey = state['tab_' + agent];
+        document.querySelectorAll('#panel-' + agent + ' .tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#panel-' + agent + ' .tab-btn').forEach(b => b.classList.remove('active'));
+        const tp = document.getElementById(agent + '-tab-' + tabKey);
+        if (tp) tp.classList.add('active');
+        document.querySelectorAll('#panel-' + agent + ' .tab-btn').forEach(b => {
+          if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tabKey + "'")) b.classList.add('active');
+        });
+      }
+    });
+
+    // Restore active panel last
+    if (state['activePanel'] && state['activePanel'] !== 'home') {
+      showPanel(state['activePanel']);
+    }
+
+  } catch(e) { console.warn('PracticeEdge restore error:', e); }
+}
+
+function lsClear() {
+  if (confirm('Clear all saved data and start fresh? This cannot be undone.')) {
+    localStorage.removeItem(LS_KEY);
+    location.reload();
+  }
+}
+
+// Auto-save on any input change
+function initAutoSave() {
+  // Save on input/change events for all form fields
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input', lsSave);
+    el.addEventListener('change', lsSave);
+  });
+  // Save when checklist items are clicked (after toggleCl runs)
+  document.querySelectorAll('.checklist li').forEach(li => {
+    li.addEventListener('click', () => setTimeout(lsSave, 50));
+  });
+  // Save when day cards are toggled
+  document.querySelectorAll('.day-hdr').forEach(hdr => {
+    hdr.addEventListener('click', () => setTimeout(lsSave, 50));
+  });
+  // Save after panel navigation
+  document.querySelectorAll('.ni, .agent-card').forEach(el => {
+    el.addEventListener('click', () => setTimeout(lsSave, 100));
+  });
+}
+
+// Restore on page load
+document.addEventListener('DOMContentLoaded', () => {
+  lsRestore();
+  initAutoSave();
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 </script>
 </body>
 </html>
