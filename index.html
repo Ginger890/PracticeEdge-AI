@@ -841,15 +841,18 @@ function skipAuth() {
 
 function updateUserUI() {
   const nav = document.querySelector('.nav-logo');
-  if(nav && currentUser) {
-    const existing = document.getElementById('user-row');
-    if(existing) existing.remove();
-    const userRow = document.createElement('div');
-    userRow.id = 'user-row';
-    userRow.style.cssText = 'font-family:Courier New,monospace;font-size:0.58rem;color:#8a6f2e;margin-top:0.5rem;display:flex;align-items:center;justify-content:space-between';
+  if(!nav) return;
+  const existing = document.getElementById('user-row');
+  if(existing) existing.remove();
+  const userRow = document.createElement('div');
+  userRow.id = 'user-row';
+  userRow.style.cssText = 'font-family:Courier New,monospace;font-size:0.58rem;color:#8a6f2e;margin-top:0.5rem;display:flex;align-items:center;justify-content:space-between';
+  if(currentUser) {
     userRow.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${currentUser.email}</span><button onclick="signOut()" style="background:transparent;border:none;color:#9a9488;cursor:pointer;font-family:Courier New,monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.08em;padding:0">Sign out</button>`;
-    nav.appendChild(userRow);
+  } else {
+    userRow.innerHTML = '<button onclick="showAuthModal()" style="background:transparent;border:1px solid rgba(184,151,58,0.35);border-radius:2px;color:#b5872a;cursor:pointer;font-family:Courier New,monospace;font-size:0.55rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;white-space:nowrap">Sign In</button>';
   }
+  nav.appendChild(userRow);
 }
 
 async function signOut() {
@@ -940,7 +943,8 @@ window.addEventListener('load', async () => {
     updateUserUI();
     await loadUserData();
   } else {
-    setTimeout(() => showAuthModal(), 800);
+    updateUserUI();
+    showAuthModal();
   }
 });
 
