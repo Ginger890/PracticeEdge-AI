@@ -671,6 +671,7 @@ async function authSignIn() {
     document.getElementById('auth-modal').remove();
     updateUserUI();
     await loadUserData();
+    setTimeout(checkAndOfferMigration, 1500);
   } catch(e) {
     errEl.textContent = 'Sign in failed: ' + e.message;
     errEl.style.display = 'block';
@@ -909,7 +910,7 @@ async function claude(sys, usr) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': 'PASTE_YOUR_ANTHROPIC_API_KEY_HERE',
+      'x-api-key': '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',
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
@@ -1306,6 +1307,112 @@ Structure: DAYS 1-30 (week by week) | DAYS 31-60 | DAYS 61-90 | CRITICAL SUCCESS
 function v(id) { const el=document.getElementById(id); return el ? el.value.trim() : ''; }
 
 if(masterPCS) updatePCSBanners();
+
+// ── LOCAL DATA MIGRATION ──
+async function checkAndOfferMigration() {
+  if (!currentUser) return;
+  
+  // Check if there is local data worth migrating
+  var localKeys = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    // Skip auth keys and already-synced keys
+    if (key && !key.startsWith('sb_') && key !== 'pcs_synced') {
+      var val = localStorage.getItem(key);
+      if (val && val.length > 10) {
+        localKeys.push(key);
+      }
+    }
+  }
+  
+  // Check if there is meaningful local data (pcs or agent outputs)
+  var hasPCS = !!localStorage.getItem('pcs');
+  var hasOutputs = localKeys.some(function(k) { 
+    return k.includes('content') || k.includes('pcs') || k === 'pcs';
+  });
+  
+  if ((!hasPCS && !hasOutputs) || localStorage.getItem('pcs_synced') === currentUser.id) return;
+  
+  // Show migration banner
+  var existing = document.getElementById('migration-banner');
+  if (existing) return;
+  
+  var banner = document.createElement('div');
+  banner.id = 'migration-banner';
+  banner.style.cssText = 'position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#112240;border:1px solid rgba(201,168,76,0.6);border-radius:6px;padding:1rem 1.5rem;z-index:500;max-width:460px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,0.4);display:flex;align-items:flex-start;gap:1rem;';
+  banner.innerHTML = '<div style="color:#c9a84c;font-size:1.1rem;flex-shrink:0;margin-top:2px">&#9670;</div>'
+    + '<div style="flex:1">'
+    + '<div style="font-family:Georgia,serif;font-size:0.9rem;color:#e8c97a;font-weight:600;margin-bottom:4px">Saved work found on this device</div>'
+    + '<div style="font-size:0.78rem;color:#9a9488;line-height:1.5;margin-bottom:10px">You have inputs and outputs saved in this browser from before you created your account. Upload them to your account now so they are available on any device.</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<button onclick="runMigration()" id="migrate-btn" style="background:#c9a84c;border:none;border-radius:3px;color:#0a1628;cursor:pointer;font-family:Courier New,monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;padding:0.5rem 1rem;text-transform:uppercase">Upload to My Account</button>'
+    + '<button onclick="dismissMigration()" style="background:transparent;border:1px solid rgba(201,168,76,0.3);border-radius:3px;color:#9a9488;cursor:pointer;font-family:Courier New,monospace;font-size:0.65rem;letter-spacing:0.08em;padding:0.5rem 1rem;text-transform:uppercase">Not Now</button>'
+    + '</div></div>';
+  document.body.appendChild(banner);
+}
+
+async function runMigration() {
+  var btn = document.getElementById('migrate-btn');
+  if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
+  
+  var migrated = 0;
+  var errors = 0;
+  
+  try {
+    // Migrate all non-auth localStorage keys
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (!key || key.startsWith('sb_') || key === 'pcs_synced') continue;
+      var val = localStorage.getItem(key);
+      if (!val || val.length < 5) continue;
+      
+      try {
+        var token = localStorage.getItem('sb_token');
+        await fetch(SB_URL + '/rest/v1/practice_data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SB_KEY,
+            'Authorization': 'Bearer ' + token,
+            'Prefer': 'resolution=merge-duplicates,return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            data_key: key,
+            data_value: val,
+            updated_at: new Date().toISOString()
+          })
+        });
+        migrated++;
+      } catch(e) {
+        errors++;
+      }
+    }
+    
+    // Mark as synced for this user
+    localStorage.setItem('pcs_synced', currentUser.id);
+    
+    var banner = document.getElementById('migration-banner');
+    if (banner) {
+      banner.innerHTML = '<div style="color:#2ecc71;font-size:1.1rem;flex-shrink:0">&#10003;</div>'
+        + '<div><div style="font-family:Georgia,serif;font-size:0.9rem;color:#e8c97a;font-weight:600;margin-bottom:4px">Upload complete</div>'
+        + '<div style="font-size:0.78rem;color:#9a9488;line-height:1.5">' + migrated + ' items uploaded to your account. Your work is now saved and accessible on any device.</div></div>';
+      setTimeout(function() { 
+        var b = document.getElementById('migration-banner'); 
+        if (b) b.remove(); 
+      }, 4000);
+    }
+  } catch(e) {
+    var btn2 = document.getElementById('migrate-btn');
+    if (btn2) { btn2.textContent = 'Upload Failed — Try Again'; btn2.disabled = false; }
+  }
+}
+
+function dismissMigration() {
+  var banner = document.getElementById('migration-banner');
+  if (banner) banner.remove();
+}
+
 </script>
 
 <div style="position:fixed;bottom:0;left:0;right:0;background:#0a1628;border-top:1px solid rgba(201,168,76,0.2);padding:6px 24px;display:flex;align-items:center;justify-content:center;z-index:100">
