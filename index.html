@@ -697,13 +697,16 @@ async function authSignUp() {
     const uid = d.user ? d.user.id : (d.id || null);
     const uemail = d.user ? d.user.email : (d.email || email);
     if(d.access_token && uid) {
+      // Got token immediately — sign in now
       currentUser = { id: uid, email: uemail, token: d.access_token };
       localStorage.setItem('sb_token', d.access_token);
       localStorage.setItem('sb_uid', uid);
       localStorage.setItem('sb_email', uemail);
       document.getElementById('auth-modal').remove();
       updateUserUI();
+      await loadUserData();
     } else {
+      // No token — try auto sign-in with new credentials
       try {
         const r2 = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
           method: 'POST',
@@ -720,8 +723,19 @@ async function authSignUp() {
           localStorage.setItem('sb_email', uemail2);
           document.getElementById('auth-modal').remove();
           updateUserUI();
-        } else { document.getElementById('auth-modal').remove(); }
-      } catch(e2) { document.getElementById('auth-modal').remove(); }
+          await loadUserData();
+        } else {
+          // Email confirmation is required — tell user clearly instead of silently closing
+          errEl.textContent = 'Account created! Check your email for a confirmation link, then sign in here.';
+          errEl.style.color = '#2ecc71';
+          errEl.style.display = 'block';
+        }
+      } catch(e2) {
+        errEl.textContent = 'Account created! Please sign in with your new password.';
+        errEl.style.color = '#2ecc71';
+        errEl.style.display = 'block';
+        console.warn('Auto sign-in after signup failed:', e2);
+      }
     }
   } catch(e) {
     errEl.textContent = 'Sign up failed: ' + e.message;
@@ -895,7 +909,7 @@ async function claude(sys, usr) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': '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',
+      'x-api-key': 'PASTE_YOUR_ANTHROPIC_API_KEY_HERE',
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
