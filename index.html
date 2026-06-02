@@ -979,7 +979,12 @@ function lock(id, state) {
 async function claude(sys, usr) {
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': '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', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    headers: { 'Content-Type': 'application/json', 'x-api-key': 'curl https://api.anthropic.com/v1/messages \
+  --header "x-api-key: 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" \
+  --header "anthropic-version: 2023-06-01" \
+  --header "content-type: application/json" \
+  --data '{"model": "claude-sonnet-4-6", "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello, world"}]}'', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
