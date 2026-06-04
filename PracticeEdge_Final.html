@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PracticeEdge AI™ — Complete Solo Practice System</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a1628;--navy-mid:#112240;--navy-light:#1a3a5c;
+  --gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:#8a6f2e;
+  --cream:#f5f0e8;--cream-dim:#d9d0bc;
+  --text:#e8e4dc;--text-dim:#9a9488;
+  --border:rgba(201,168,76,0.25);--border-strong:rgba(201,168,76,0.5);
+  --green:#2ecc71;--red:#e74c3c;--blue:#4a9eda;
+  --font:'DM Sans',system-ui,sans-serif;--heading:'Cormorant Garamond',Georgia,serif;--mono:'Courier New',monospace;
+}
+body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;line-height:1.6}
+
+/* ── TOAST NOTIFICATION (replaces alert()) ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);background:#112240;border:1px solid var(--border-strong);border-radius:4px;color:var(--gold-light);font-family:var(--mono);font-size:0.72rem;letter-spacing:0.08em;padding:0.65rem 1.25rem;z-index:9999;opacity:0;transition:opacity 0.25s,transform 0.25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── MOBILE HAMBURGER ── */
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--navy-mid);border:1px solid var(--border);border-radius:4px;padding:8px 10px;cursor:pointer;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:18px;height:2px;background:var(--gold);border-radius:2px;transition:all 0.2s}
+.nav-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,22,40,0.7);z-index:150}
+@media(max_width:768px){
+  .hamburger{display:flex}
+  .nav{transform:translateX(-100%);transition:transform 0.25s;z-index:200}
+  .nav.open{transform:translateX(0)}
+  .nav-overlay.open{display:block}
+  .main{margin-left:0!important}
+  .site-header{padding-top:3.5rem}
+}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--navy-mid);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:1.5rem 0 2rem}
+.nav-logo{padding:0 1.25rem 1.25rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.nav-logo .brand{font-size:1rem;color:var(--gold-light);letter-spacing:0.03em;font-weight:600}
+.nav-logo .tagline{font-family:var(--mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.25rem}
+.nav-section{padding:0.5rem 1.25rem 0.25rem;font-family:var(--mono);font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-top:0.5rem}
+.nav-item{display:flex;align-items:center;gap:0.5rem;padding:0.45rem 1.25rem;cursor:pointer;transition:all 0.15s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{background:rgba(201,168,76,0.06);border-left-color:var(--gold-dim)}
+.nav-item.active{background:rgba(201,168,76,0.1);border-left-color:var(--gold)}
+.nav-item .n{font-family:var(--mono);font-size:0.65rem;color:var(--gold-dim);min-width:1.5rem}
+.nav-item .label{font-size:0.78rem;color:var(--text-dim)}
+.nav-item.active .label{color:var(--text)}
+.nav-item.active .n{color:var(--gold)}
+.nav-item.new-badge .label::after{content:' NEW';font-family:var(--mono);font-size:0.5rem;color:var(--gold);letter-spacing:0.1em;margin-left:0.3rem}
+
+/* MAIN */
+.main{margin-left:220px;min-height:100vh}
+.dashboard{padding:2.5rem 2rem 4rem;max-width:900px}
+
+/* HEADER */
+.site-header{padding:2rem 2rem 0;border-bottom:1px solid var(--border);margin-bottom:0;display:flex;align-items:flex_end;justify-content:space_between}
+.site-header .title-block .eyebrow{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:0.4rem}
+.site-header .title-block h1{font-size:clamp(1.6rem,3vw,2.4rem);color:var(--gold-light);font-weight:400;letter-spacing:0.02em;font-family:var(--heading)}
+.site-header .title-block .sub{font-size:0.85rem;color:var(--text-dim);font-style:italic;margin-top:0.25rem}
+.agent-count-badge{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.08em;color:var(--text-dim);padding-bottom:0.5rem}
+.agent-count-badge span{color:var(--gold)}
+
+/* IRON RULE */
+.iron-rule{background:rgba(201,168,76,0.06);border:1px solid var(--border-strong);border-radius:3px;padding:1rem 1.25rem;margin:1.5rem 0;display:flex;gap:0.75rem;align-items:flex_start}
+.iron-rule .icon{color:var(--gold);font-size:1.1rem;flex-shrink:0;margin-top:0.1rem}
+.iron-rule p{font-size:0.85rem;color:var(--cream-dim);line-height:1.6}
+.iron-rule strong{color:var(--gold-light)}
+
+/* AGENT PANEL */
+.agent-panel{display:none;padding:2rem 2rem 4rem;max-width:900px}
+.agent-panel.active{display:block}
+
+.agent-card{background:var(--navy-mid);border:1px solid var(--border);border-radius:4px;margin-bottom:2rem;overflow:hidden}
+.agent-card-header{display:flex;align-items:center;gap:1rem;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(201,168,76,0.04)}
+.agent-num{background:var(--gold);color:var(--navy);font-family:var(--mono);font-size:0.72rem;font-weight:700;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agent-num.new{background:var(--gold-light);box-shadow:0 0 10px rgba(201,168,76,0.4)}
+.agent-card-header h2{font-size:1.05rem;color:var(--gold-light);font-weight:600;font-family:var(--heading)}
+.agent-card-header .sub{font-size:0.78rem;color:var(--text-dim);font-style:italic;margin-top:0.1rem}
+.vol-badge{margin-left:auto;font-family:var(--mono);font-size:0.58rem;letter-spacing:0.1em;color:var(--gold-dim);text-transform:uppercase;white-space:nowrap}
+.agent-body{padding:1.5rem}
+
+/* PLACEMENT NOTE */
+.placement-note{display:flex;align-items:flex_start;gap:0.75rem;background:rgba(74,158,218,0.07);border:1px solid rgba(74,158,218,0.28);border-radius:3px;padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--blue)}
+.warning-box{display:flex;align-items:flex_start;gap:0.75rem;background:rgba(231,76,60,0.07);border:1px solid rgba(231,76,60,0.28);border-radius:3px;padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.82rem;color:#e8a09a}
+
+/* INPUTS */
+.section-title{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.85rem;padding-bottom:0.35rem;border-bottom:1px solid var(--border)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+.grid.g1{grid-template-columns:1fr}
+.grid.g3{grid-template-columns:1fr 1fr 1fr}
+@media(max_width:640px){.grid,.grid.g3{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:0.35rem}
+.fg label{font-family:var(--mono);font-size:0.67rem;letter-spacing:0.08em;color:var(--text-dim);text-transform:uppercase}
+.fg input,.fg select,.fg textarea{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--font);font-size:0.87rem;padding:0.55rem 0.7rem;transition:border_color 0.2s;width:100%}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--gold)}
+.fg textarea{resize:vertical;min-height:78px;line-height:1.5}
+.fg select option{background:var(--navy-mid)}
+
+/* PRACTICE AREA GRID */
+.pa-grid{display:grid;grid-template-columns:repeat(auto_fill,minmax(148px,1fr));gap:0.45rem;margin-bottom:0.85rem}
+.pa-btn{background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);cursor:pointer;font-family:var(--font);font-size:0.78rem;padding:0.45rem 0.7rem;text-align:left;transition:all 0.15s}
+.pa-btn:hover{border-color:var(--gold-dim);color:var(--text)}
+.pa-btn.sel{background:rgba(201,168,76,0.11);border-color:var(--gold);color:var(--gold-light)}
+
+/* COLLAPSIBLE */
+.collapsible{display:none;margin-top:0.85rem;padding-top:0.85rem;border-top:1px solid var(--border)}
+.collapsible.open{display:block}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.25rem;flex-wrap:wrap}
+.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-dim);cursor:pointer;font-family:var(--mono);font-size:0.67rem;letter-spacing:0.08em;padding:0.6rem 1rem;text-transform:uppercase;transition:all 0.15s;margin-bottom:-1px}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{border-bottom-color:var(--gold);color:var(--gold-light)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:0.4rem;margin:0.75rem 0}
+.cl-item{display:flex;align-items:flex_start;gap:0.5rem;font-size:0.83rem;color:var(--text-dim)}
+.cl-item .cb{width:15px;height:15px;border:1px solid var(--border-strong);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--green);margin-top:0.1rem}
+
+/* BD RHYTHM */
+.rhythm-day{margin-bottom:0.75rem}
+.rhythm-day summary{cursor:pointer;font-family:var(--mono);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);padding:0.4rem 0;list-style:none}
+.rhythm-day summary::marker{display:none}
+.rhythm-day p{font-size:0.83rem;color:var(--text-dim);padding:0.5rem 0 0 0.75rem;line-height:1.6}
+
+/* GENERATE BTN */
+.gen-btn{background:var(--gold);border:none;border-radius:3px;color:var(--navy);cursor:pointer;font-family:var(--mono);font-size:0.72rem;font-weight:700;letter-spacing:0.1em;padding:0.8rem 2rem;text-transform:uppercase;transition:background 0.15s,transform 0.1s;width:100%;margin-top:0.4rem}
+.gen-btn:hover{background:var(--gold-light);transform:translateY(-1px)}
+.gen-btn:active{transform:translateY(0)}
+.gen-btn:disabled{background:var(--gold-dim);cursor:not_allowed;transform:none}
+
+/* OUTPUT */
+.out-area{margin-top:1rem;display:none}
+.out-area.show{display:block}
+.out-hdr{display:flex;align-items:center;justify-content:space_between;padding:0.55rem 0.8rem;background:rgba(201,168,76,0.07);border:1px solid var(--border);border-bottom:none;border-radius:3px 3px 0 0}
+.out-hdr span{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim)}
+.copy-btn{background:transparent;border:1px solid var(--border);border-radius:2px;color:var(--text-dim);cursor:pointer;font-family:var(--mono);font-size:0.58rem;letter-spacing:0.08em;padding:0.2rem 0.55rem;text-transform:uppercase;transition:all 0.15s}
+.copy-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+.out-content{background:rgba(0,0,0,0.22);border:1px solid var(--border);border-radius:0 0 3px 3px;color:var(--cream-dim);font-size:0.87rem;line-height:1.75;min-height:110px;padding:1.15rem;white-space:pre_wrap;word-break:break_word}
+
+/* PCS BANNER */
+.pcs-banner{background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:3px;padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--text-dim)}
+.pcs-banner.set{border-color:var(--border-strong);color:var(--cream-dim)}
+.pcs-banner strong{color:var(--gold)}
+
+/* CLEAR BTN */
+.clear-btn{background:transparent;border:1px solid rgba(231,76,60,0.3);border-radius:3px;color:rgba(231,76,60,0.6);cursor:pointer;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.08em;padding:0.4rem 0.9rem;text-transform:uppercase;transition:all 0.15s;margin-top:0.5rem}
+.clear-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* STATUS */
+.status-row{display:flex;align-items:center;gap:0.5rem;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:0.5rem}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green)}
+
+/* DASHBOARD GRID */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin:1.5rem 0}
+@media(max_width:700px){.dash-grid{grid-template-columns:1fr}}
+.dash-card{background:var(--navy-mid);border:1px solid var(--border);border-radius:4px;padding:1rem 1.1rem;cursor:pointer;transition:all 0.15s}
+.dash-card:hover{border-color:var(--border-strong);background:rgba(201,168,76,0.05)}
+.dash-card .dc-num{font-family:var(--mono);font-size:0.65rem;color:var(--gold-dim);margin-bottom:0.3rem}
+.dash-card .dc-title{font-size:0.88rem;color:var(--text);font-weight:600;margin-bottom:0.2rem}
+.dash-card .dc-sub{font-size:0.75rem;color:var(--text-dim);font-style:italic}
+.dash-card.new-card{border-color:rgba(201,168,76,0.4)}
+.dash-card.new-card .dc-num::after{content:' · NEW';color:var(--gold)}
+</style>
+</head>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a1628;--navy-mid:#112240;--navy-light:#1a3a5c;
+  --gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:#8a6f2e;
+  --cream:#f5f0e8;--cream-dim:#d9d0bc;
+  --text:#e8e4dc;--text-dim:#9a9488;
+  --border:rgba(201,168,76,0.25);--border-strong:rgba(201,168,76,0.5);
+  --green:#2ecc71;--red:#e74c3c;--blue:#4a9eda;
+  --font:'DM Sans',system-ui,sans-serif;--heading:'Cormorant Garamond',Georgia,serif;--mono:'Courier New',monospace;
+}
+body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;line-height:1.6}
+
+/* ── TOAST NOTIFICATION (replaces alert()) ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);background:#112240;border:1px solid var(--border-strong);border-radius:4px;color:var(--gold-light);font-family:var(--mono);font-size:0.72rem;letter-spacing:0.08em;padding:0.65rem 1.25rem;z-index:9999;opacity:0;transition:opacity 0.25s,transform 0.25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── MOBILE HAMBURGER ── */
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--navy-mid);border:1px solid var(--border);border-radius:4px;padding:8px 10px;cursor:pointer;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:18px;height:2px;background:var(--gold);border-radius:2px;transition:all 0.2s}
+.nav-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,22,40,0.7);z-index:150}
+@media(max-width:768px){
+  .hamburger{display:flex}
+  .nav{transform:translateX(-100%);transition:transform 0.25s;z-index:200}
+  .nav.open{transform:translateX(0)}
+  .nav-overlay.open{display:block}
+  .main{margin-left:0!important}
+  .site-header{padding-top:3.5rem}
+}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--navy-mid);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:1.5rem 0 2rem}
+.nav_logo{padding:0 1.25rem 1.25rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.nav_logo .brand{font-size:1rem;color:var(--gold-light);letter-spacing:0.03em;font-weight:600}
+.nav_logo .tagline{font-family:var(--mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.25rem}
+.nav_section{padding:0.5rem 1.25rem 0.25rem;font-family:var(--mono);font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-top:0.5rem}
+.nav-item{display:flex;align-items:center;gap:0.5rem;padding:0.45rem 1.25rem;cursor:pointer;transition:all 0.15s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{background:rgba(201,168,76,0.06);border-left_color:var(--gold-dim)}
+.nav-item.active{background:rgba(201,168,76,0.1);border-left_color:var(--gold)}
+.nav-item .n{font-family:var(--mono);font-size:0.65rem;color:var(--gold-dim);min-width:1.5rem}
+.nav-item .label{font-size:0.78rem;color:var(--text-dim)}
+.nav-item.active .label{color:var(--text)}
+.nav-item.active .n{color:var(--gold)}
+.nav-item.new-badge .label::after{content:' NEW';font-family:var(--mono);font-size:0.5rem;color:var(--gold);letter-spacing:0.1em;margin-left:0.3rem}
+
+/* MAIN */
+.main{margin-left:220px;min-height:100vh}
+.dashboard{padding:2.5rem 2rem 4rem;max-width:900px}
+
+/* HEADER */
+.site-header{padding:2rem 2rem 0;border-bottom:1px solid var(--border);margin-bottom:0;display:flex;align-items:flex_end;justify-content:space_between}
+.site-header .title_block .eyebrow{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:0.4rem}
+.site-header .title_block h1{font-size:clamp(1.6rem,3vw,2.4rem);color:var(--gold-light);font-weight:400;letter-spacing:0.02em;font-family:var(--heading)}
+.site-header .title_block .sub{font-size:0.85rem;color:var(--text-dim);font-style:italic;margin-top:0.25rem}
+.agent_count_badge{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.08em;color:var(--text-dim);padding-bottom:0.5rem}
+.agent_count_badge span{color:var(--gold)}
+
+/* IRON RULE */
+.iron_rule{background:rgba(201,168,76,0.06);border:1px solid var(--border-strong);border-radius:3px;padding:1rem 1.25rem;margin:1.5rem 0;display:flex;gap:0.75rem;align-items:flex_start}
+.iron_rule .icon{color:var(--gold);font-size:1.1rem;flex-shrink:0;margin-top:0.1rem}
+.iron_rule p{font-size:0.85rem;color:var(--cream-dim);line-height:1.6}
+.iron_rule strong{color:var(--gold-light)}
+
+/* AGENT PANEL */
+.agent-panel{display:none;padding:2rem 2rem 4rem;max-width:900px}
+.agent-panel.active{display:block}
+
+.agent_card{background:var(--navy-mid);border:1px solid var(--border);border-radius:4px;margin-bottom:2rem;overflow:hidden}
+.agent_card_header{display:flex;align-items:center;gap:1rem;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(201,168,76,0.04)}
+.agent_num{background:var(--gold);color:var(--navy);font-family:var(--mono);font-size:0.72rem;font-weight:700;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agent_num.new{background:var(--gold-light);box-shadow:0 0 10px rgba(201,168,76,0.4)}
+.agent_card_header h2{font-size:1.05rem;color:var(--gold-light);font-weight:600;font-family:var(--heading)}
+.agent_card_header .sub{font-size:0.78rem;color:var(--text-dim);font-style:italic;margin-top:0.1rem}
+.vol_badge{margin-left:auto;font-family:var(--mono);font-size:0.58rem;letter-spacing:0.1em;color:var(--gold-dim);text-transform:uppercase;white-space:nowrap}
+.agent_body{padding:1.5rem}
+
+/* PLACEMENT NOTE */
+.placement_note{display:flex;align-items:flex_start;gap:0.75rem;background:rgba(74,158,218,0.07);border:1px solid rgba(74,158,218,0.28);border-radius:3px;padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--blue)}
+.warning_box{display:flex;align-items:flex_start;gap:0.75rem;background:rgba(231,76,60,0.07);border:1px solid rgba(231,76,60,0.28);border-radius:3px;padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.82rem;color:#e8a09a}
+
+/* INPUTS */
+.section_title{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.85rem;padding-bottom:0.35rem;border-bottom:1px solid var(--border)}
+.grid{display:grid;grid-template_columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+.grid.g1{grid-template_columns:1fr}
+.grid.g3{grid-template_columns:1fr 1fr 1fr}
+@media(max-width:640px){.grid,.grid.g3{grid-template_columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:0.35rem}
+.fg label{font-family:var(--mono);font-size:0.67rem;letter-spacing:0.08em;color:var(--text-dim);text-transform:uppercase}
+.fg input,.fg select,.fg textarea{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--font);font-size:0.87rem;padding:0.55rem 0.7rem;transition:border_color 0.2s;width:100%}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--gold)}
+.fg textarea{resize:vertical;min-height:78px;line-height:1.5}
+.fg select option{background:var(--navy-mid)}
+
+/* PRACTICE AREA GRID */
+.pa_grid{display:grid;grid-template_columns:repeat(auto_fill,minmax(148px,1fr));gap:0.45rem;margin-bottom:0.85rem}
+.pa_btn{background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);cursor:pointer;font-family:var(--font);font-size:0.78rem;padding:0.45rem 0.7rem;text-align:left;transition:all 0.15s}
+.pa_btn:hover{border-color:var(--gold-dim);color:var(--text)}
+.pa_btn.sel{background:rgba(201,168,76,0.11);border-color:var(--gold);color:var(--gold-light)}
+
+/* COLLAPSIBLE */
+.collapsible{display:none;margin-top:0.85rem;padding-top:0.85rem;border-top:1px solid var(--border)}
+.collapsible.open{display:block}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.25rem;flex-wrap:wrap}
+.tab_btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-dim);cursor:pointer;font-family:var(--mono);font-size:0.67rem;letter-spacing:0.08em;padding:0.6rem 1rem;text-transform:uppercase;transition:all 0.15s;margin-bottom:-1px}
+.tab_btn:hover{color:var(--text)}
+.tab_btn.active{border-bottom_color:var(--gold);color:var(--gold-light)}
+.tab_pane{display:none}
+.tab_pane.active{display:block}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:0.4rem;margin:0.75rem 0}
+.cl_item{display:flex;align-items:flex_start;gap:0.5rem;font-size:0.83rem;color:var(--text-dim)}
+.cl_item .cb{width:15px;height:15px;border:1px solid var(--border-strong);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--green);margin-top:0.1rem}
+
+/* BD RHYTHM */
+.rhythm_day{margin-bottom:0.75rem}
+.rhythm_day summary{cursor:pointer;font-family:var(--mono);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);padding:0.4rem 0;list-style:none}
+.rhythm_day summary::marker{display:none}
+.rhythm_day p{font-size:0.83rem;color:var(--text-dim);padding:0.5rem 0 0 0.75rem;line-height:1.6}
+
+/* GENERATE BTN */
+.gen_btn{background:var(--gold);border:none;border-radius:3px;color:var(--navy);cursor:pointer;font-family:var(--mono);font-size:0.72rem;font-weight:700;letter-spacing:0.1em;padding:0.8rem 2rem;text-transform:uppercase;transition:background 0.15s,transform 0.1s;width:100%;margin-top:0.4rem}
+.gen_btn:hover{background:var(--gold-light);transform:translateY(-1px)}
+.gen_btn:active{transform:translateY(0)}
+.gen_btn:disabled{background:var(--gold-dim);cursor:not_allowed;transform:none}
+
+/* OUTPUT */
+.out_area{margin-top:1rem;display:none}
+.out_area.show{display:block}
+.out_hdr{display:flex;align-items:center;justify-content:space_between;padding:0.55rem 0.8rem;background:rgba(201,168,76,0.07);border:1px solid var(--border);border-bottom:none;border-radius:3px 3px 0 0}
+.out_hdr span{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim)}
+.copy_btn{background:transparent;border:1px solid var(--border);border-radius:2px;color:var(--text-dim);cursor:pointer;font-family:var(--mono);font-size:0.58rem;letter-spacing:0.08em;padding:0.2rem 0.55rem;text-transform:uppercase;transition:all 0.15s}
+.copy_btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+.out_content{background:rgba(0,0,0,0.22);border:1px solid var(--border);border-radius:0 0 3px 3px;color:var(--cream-dim);font-size:0.87rem;line-height:1.75;min-height:110px;padding:1.15rem;white-space:pre_wrap;word-break:break_word}
+
+/* PCS BANNER */
+.pcs_banner{background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:3px;padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--text-dim)}
+.pcs_banner.set{border-color:var(--border-strong);color:var(--cream-dim)}
+.pcs_banner strong{color:var(--gold)}
+
+/* CLEAR BTN */
+.clear_btn{background:transparent;border:1px solid rgba(231,76,60,0.3);border-radius:3px;color:rgba(231,76,60,0.6);cursor:pointer;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.08em;padding:0.4rem 0.9rem;text-transform:uppercase;transition:all 0.15s;margin-top:0.5rem}
+.clear_btn:hover{border-color:var(--red);color:var(--red)}
+
+/* STATUS */
+.status_row{display:flex;align-items:center;gap:0.5rem;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:0.5rem}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green)}
+
+/* DASHBOARD GRID */
+.dash_grid{display:grid;grid-template_columns:1fr 1fr 1fr;gap:1rem;margin:1.5rem 0}
+@media(max-width:700px){.dash_grid{grid-template_columns:1fr}}
+.dash_card{background:var(--navy-mid);border:1px solid var(--border);border-radius:4px;padding:1rem 1.1rem;cursor:pointer;transition:all 0.15s}
+.dash_card:hover{border-color:var(--border-strong);background:rgba(201,168,76,0.05)}
+.dash_card .dc_num{font-family:var(--mono);font-size:0.65rem;color:var(--gold-dim);margin-bottom:0.3rem}
+.dash_card .dc_title{font-size:0.88rem;color:var(--text);font-weight:600;margin-bottom:0.2rem}
+.dash_card .dc_sub{font-size:0.75rem;color:var(--text-dim);font-style:italic}
+.dash_card.new_card{border-color:rgba(201,168,76,0.4)}
+.dash_card.new_card .dc_num::after{content:' · NEW';color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- FIX 5: Mobile hamburger menu -->
+<button class="hamburger" id="hamburger" onclick="toggleNav()" aria_label="Open navigation">
+  <span></span><span></span><span></span>
+</button>
+<div class="nav-overlay" id="nav-overlay" onclick="toggleNav()"></div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="nav-logo">
+    <div class="brand">PracticeEdge AI&#8482;</div>
+    <div class="tagline">25 Agents · Solo Practice System</div>
+  </div>
+  <a class="nav-item active" onclick="show('dashboard')"><span class="n">&#8962;</span><span class="label">Dashboard</span></a>
+  <div class="nav-section">Volume 1 · Launch</div>
+  <a class="nav-item" onclick="show('a0')"><span class="n">0</span><span class="label">Practice Capital Assessment</span></a>
+  <a class="nav-item new-badge" onclick="show('a0b')"><span class="n">0B</span><span class="label">Niche Specialization</span></a>
+  <a class="nav-item" onclick="show('a1')"><span class="n">1</span><span class="label">Market Intelligence</span></a>
+  <a class="nav-item new-badge" onclick="show('a1b')"><span class="n">1B</span><span class="label">Market Entry</span></a>
+  <a class="nav-item" onclick="show('a2')"><span class="n">2</span><span class="label">Business Development</span></a>
+  <a class="nav-item" onclick="show('a3')"><span class="n">3</span><span class="label">Client Engagement</span></a>
+  <a class="nav-item" onclick="show('a4')"><span class="n">4</span><span class="label">Execution &amp; Operations</span></a>
+  <div class="nav-section">Volume 2 · Operations</div>
+  <a class="nav-item" onclick="show('a5')"><span class="n">5</span><span class="label">Legal Research &amp; Drafting</span></a>
+  <a class="nav-item" onclick="show('a6')"><span class="n">6</span><span class="label">Client Communication</span></a>
+  <a class="nav-item" onclick="show('a7')"><span class="n">7</span><span class="label">Collections &amp; Billing</span></a>
+  <a class="nav-item" onclick="show('a8')"><span class="n">8</span><span class="label">Deadline &amp; Docket</span></a>
+  <a class="nav-item" onclick="show('a9')"><span class="n">9</span><span class="label">Referral Manager</span></a>
+  <a class="nav-item" onclick="show('a10')"><span class="n">10</span><span class="label">Thought Leadership</span></a>
+  <a class="nav-item" onclick="show('a11')"><span class="n">11</span><span class="label">New Matter Intake</span></a>
+  <a class="nav-item" onclick="show('a12')"><span class="n">12</span><span class="label">Financial Intelligence</span></a>
+  <a class="nav-item" onclick="show('a13')"><span class="n">13</span><span class="label">Difficult Conversations</span></a>
+  <div class="nav-section">Volume 3 · Compliance</div>
+  <a class="nav-item" onclick="show('a14')"><span class="n">14</span><span class="label">Conflicts Management</span></a>
+  <a class="nav-item" onclick="show('a15')"><span class="n">15</span><span class="label">Matter Closing</span></a>
+  <a class="nav-item" onclick="show('a16')"><span class="n">16</span><span class="label">Practice Continuity</span></a>
+  <a class="nav-item" onclick="show('a17')"><span class="n">17</span><span class="label">CLE Compliance</span></a>
+  <a class="nav-item" onclick="show('a18')"><span class="n">18</span><span class="label">Trust Accounting</span></a>
+  <a class="nav-item" onclick="show('a19')"><span class="n">19</span><span class="label">Technology Risk</span></a>
+  <a class="nav-item" onclick="show('a20')"><span class="n">20</span><span class="label">Advertising Compliance</span></a>
+  <a class="nav-item" onclick="show('a21')"><span class="n">21</span><span class="label">Launch Pricing</span></a>
+  <a class="nav-item" onclick="show('a22')"><span class="n">22</span><span class="label">Practice Intelligence</span></a>
+</nav>
+
+<!-- FIX 1: Toast notification element (replaces alert()) -->
+<div class="toast" id="toast"></div>
+
+<div class="main">
+<div class="site-header">
+  <div class="title-block">
+    <div class="eyebrow">Complete Solo Practice System</div>
+    <h1>PracticeEdge AI&#8482;</h1>
+    <div class="sub">25 agents · Volume 1 builds your practice · Volume 2 runs it · Volume 3 protects it</div>
+  </div>
+  <div class="agent-count-badge"><span>25</span> agents ready</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="agent-panel active dashboard">
+  <div class="iron-rule">
+    <span class="icon">&#9670;</span>
+    <p><strong>The Iron Rule of Context:</strong> Paste your Practice Capital Summary from Agent 0 into every agent. Thin input = thin output. Complete Agent 0B immediately after Agent 0 — your Niche Intelligence Profile makes every agent downstream more powerful.</p>
+  </div>
+  <div class="status-row"><div class="dot"></div><span id="pcs-status-dash">Complete Agent 0 to activate the system</span></div>
+  <div class="pcs-banner" id="dash-pcs-banner"><strong>Practice Capital Summary</strong> — Complete Agent 0 first. <a style="color:var(--gold);cursor:pointer" onclick="show('a0')">Go to Agent 0 →</a></div>
+
+  <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin:1.5rem 0 0.75rem">Volume 1 · Practice Launch</div>
+  <div class="dash-grid">
+    <div class="dash-card" onclick="show('a0')"><div class="dc-num">0 · Mandatory First Step</div><div class="dc-title">Practice Capital Assessment</div><div class="dc-sub">Excavate your portable clients, matter history &amp; revenue baseline</div></div>
+    <div class="dash-card new-card" onclick="show('a0b')"><div class="dc-num">0B</div><div class="dc-title">Niche Specialization Module</div><div class="dc-sub">Practice-area intelligence — run immediately after Agent 0</div></div>
+    <div class="dash-card" onclick="show('a1')"><div class="dc-num">1</div><div class="dc-title">Market Intelligence &amp; Positioning</div><div class="dc-sub">40-target client list, referral map, LinkedIn profile, bio</div></div>
+    <div class="dash-card new-card" onclick="show('a1b')"><div class="dc-num">1B</div><div class="dc-title">Market Entry Agent</div><div class="dc-sub">New geography · satellite office · unfamiliar market</div></div>
+    <div class="dash-card" onclick="show('a2')"><div class="dc-num">2</div><div class="dc-title">Business Development &amp; Outreach</div><div class="dc-sub">Personalized outreach for any contact + document toolkit</div></div>
+    <div class="dash-card" onclick="show('a3')"><div class="dc-num">3</div><div class="dc-title">Client Engagement &amp; Fees</div><div class="dc-sub">Client meeting briefs, fee structure strategy, closing language</div></div>
+    <div class="dash-card" onclick="show('a4')"><div class="dc-num">4 · Intelligence Core</div><div class="dc-title">Execution, Coaching &amp; Operations</div><div class="dc-sub">Weekly BD rhythm, pipeline health, coaching engine</div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin:1.5rem 0 0.75rem">Volume 2 · Practice Operations</div>
+  <div class="dash-grid">
+    <div class="dash-card" onclick="show('a5')"><div class="dc-num">5</div><div class="dc-title">Legal Research &amp; Drafting</div><div class="dc-sub">First drafts in minutes</div></div>
+    <div class="dash-card" onclick="show('a6')"><div class="dc-num">6</div><div class="dc-title">Client Communication</div><div class="dc-sub">Every message, your voice</div></div>
+    <div class="dash-card" onclick="show('a7')"><div class="dc-num">7</div><div class="dc-title">Collections &amp; Billing</div><div class="dc-sub">Follow-up &amp; disputes</div></div>
+    <div class="dash-card" onclick="show('a8')"><div class="dc-num">8</div><div class="dc-title">Deadline &amp; Docket</div><div class="dc-sub">Never miss a date</div></div>
+    <div class="dash-card" onclick="show('a9')"><div class="dc-num">9</div><div class="dc-title">Referral Manager</div><div class="dc-sub">Keep sources active</div></div>
+    <div class="dash-card" onclick="show('a10')"><div class="dc-num">10</div><div class="dc-title">Thought Leadership</div><div class="dc-sub">Content &amp; visibility</div></div>
+    <div class="dash-card" onclick="show('a11')"><div class="dc-num">11</div><div class="dc-title">New Matter Intake</div><div class="dc-sub">Open matters right</div></div>
+    <div class="dash-card" onclick="show('a12')"><div class="dc-num">12</div><div class="dc-title">Financial Intelligence</div><div class="dc-sub">Monthly practice CFO</div></div>
+    <div class="dash-card" onclick="show('a13')"><div class="dc-num">13</div><div class="dc-title">Difficult Conversations</div><div class="dc-sub">Script the hard talks</div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin:1.5rem 0 0.75rem">Volume 3 · Compliance &amp; Risk</div>
+  <div class="dash-grid">
+    <div class="dash-card" onclick="show('a14')"><div class="dc-num">14</div><div class="dc-title">Conflicts Management</div><div class="dc-sub">Bar discipline prevention</div></div>
+    <div class="dash-card" onclick="show('a15')"><div class="dc-num">15</div><div class="dc-title">Matter Closing</div><div class="dc-sub">Close every matter right</div></div>
+    <div class="dash-card" onclick="show('a16')"><div class="dc-num">16</div><div class="dc-title">Practice Continuity</div><div class="dc-sub">Succession planning</div></div>
+    <div class="dash-card" onclick="show('a17')"><div class="dc-num">17</div><div class="dc-title">CLE Compliance</div><div class="dc-sub">Never miss a deadline</div></div>
+    <div class="dash-card" onclick="show('a18')"><div class="dc-num">18</div><div class="dc-title">Trust Accounting</div><div class="dc-sub">IOLTA procedures</div></div>
+    <div class="dash-card" onclick="show('a19')"><div class="dc-num">19</div><div class="dc-title">Technology Risk</div><div class="dc-sub">Cybersecurity &amp; vendors</div></div>
+    <div class="dash-card" onclick="show('a20')"><div class="dc-num">20</div><div class="dc-title">Advertising Compliance</div><div class="dc-sub">Bar rules review</div></div>
+    <div class="dash-card" onclick="show('a21')"><div class="dc-num">21</div><div class="dc-title">Launch Pricing Strategy</div><div class="dc-sub">Rate decisions</div></div>
+    <div class="dash-card" onclick="show('a22')"><div class="dc-num">22</div><div class="dc-title">Practice Intelligence</div><div class="dc-sub">Feedback &amp; calibration</div></div>
+  </div>
+  <button class="clear-btn" onclick="clearAll()">Clear all saved data</button>
+</div>
+
+<!-- AGENT 0 -->
+<div id="a0" class="agent-panel">
+  <div class="agent-card">
+    <div class="agent-card-header">
+      <div class="agent-num">0</div>
+      <div><h2>Practice Capital Assessment</h2><div class="sub">Mandatory first step — excavate your portable clients, matter history, differentiation, and revenue baseline</div></div>
+      <div class="vol-badge">Volume 1</div>
+    </div>
+    <div class="agent-body">
+      <div class="placement-note"><span>&#9672;</span><span><strong>Complete every field.</strong> The Practice Capital Summary produced here is the master input for all agents. The more specific your inputs, the more actionable every output will be. Run Agent 0B immediately after to add your niche intelligence layer.</span></div>
+      <div class="section-title">Checklist</div>
+      <div class="checklist">
+        <div class="cl-item"><div class="cb">&#10003;</div><span>Practice background completed in full</span></div>
+        <div class="cl-item"><div class="cb">&#10003;</div><span>Portable client relationships documented with revenue estimates</span></div>
+        <div class="cl-item"><div class="cb">&#10003;</div><span>Referral source network mapped</span></div>
+        <div class="cl-item"><div class="cb">&#10003;</div><span>Matter history described — minimum 5 matters</span></div>
+        <div class="cl-item"><div class="cb">&#10003;</div><span>Differentiation statement written and feels authentically yours</span></div>
+        <div class="cl-item"><div class="cb">&#10003;</div><span>Fee structure strategy established</span></div>
+        <div class="cl-item"><div class="cb">&#10003;</div><span>Year 1 revenue baseline established</span></div>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0">
+      <div class="section-title">Practice Background</div>
+      <!-- FIX 6: required on core Agent 0 fields -->
+      <div class="grid">
+        <div class="fg"><label>Your full name *</label><input type="text" id="a0-name" placeholder="Full name" required></div>
+        <div class="fg"><label>Years in practice *</label><input type="text" id="a0-years" placeholder="e.g. 12 years" required></div>
+        <div class="fg"><label>Primary practice areas *</label><input type="text" id="a0-areas" placeholder="e.g. Commercial Litigation, IP" required></div>
+        <div class="fg"><label>Prior firm and role</label><input type="text" id="a0-firm" placeholder="e.g. Partner, Jackson Walker LLP"></div>
+        <div class="fg"><label>Geographic market *</label><input type="text" id="a0-geo" placeholder="e.g. Houston, TX" required></div>
+        <div class="fg"><label>Target billing rate</label><input type="text" id="a0-rate" placeholder="e.g. $450/hr"></div>
+      </div>
+      <div class="grid g1">
+        <div class="fg"><label>Target client types *</label><textarea id="a0-clients" placeholder="Describe your ideal clients — industry, size, legal needs…" required></textarea></div>
+      </div>
+      <div class="section-title">Portable Client Relationships</div>
+      <div class="grid g1">
+        <div class="fg"><label>Clients you own (they will follow you) *</label><textarea id="a0-portable" placeholder="Names or descriptions, estimated annual revenue each…" required></textarea></div>
+        <div class="fg" style="margin-top:0.75rem"><label>Clients who might follow</label><textarea id="a0-might" placeholder="Names or descriptions, estimated probability, revenue potential…"></textarea></div>
+        <div class="fg" style="margin-top:0.75rem"><label>Referral sources — attorneys, CPAs, bankers, others</label><textarea id="a0-referrals" placeholder="List your referral sources and approximate referrals per year from each…"></textarea></div>
+      </div>
+      <div class="section-title">Matter History &amp; Self-Assessment</div>
+      <div class="grid g1">
+        <div class="fg"><label>5–8 representative matters (type, size, your role, outcome) *</label><textarea id="a0-matters" style="min-height:110px" placeholder="e.g. Lead counsel, $2M breach of contract, obtained summary judgment…" required></textarea></div>
+        <div class="fg" style="margin-top:0.75rem"><label>Three strongest competencies as a lawyer *</label><textarea id="a0-strengths" placeholder="Be honest and specific — what do clients hire you for specifically?" required></textarea></div>
+        <div class="fg" style="margin-top:0.75rem"><label>Areas to refer out or co_counsel</label><textarea id="a0-gaps" placeholder="Be candid — what work should you send to others?"></textarea></div>
+        <div class="fg" style="margin-top:0.75rem"><label>Year 1 revenue goal *</label><input type="text" id="a0-goal" placeholder="e.g. $300,000" required></div>
+      </div>
+      <button class="gen-btn" id="a0-btn" onclick="genAgent('a0')">&#10022; Generate Practice Capital Summary &#8594;</button>
+      <div class="out-area" id="a0-out">
+        <div class="out-hdr"><span>Practice Capital Summary</span><button class="copy-btn" onclick="copyOut('a0-content')">Copy</button></div>
+        <div class="out-content" id="a0-content"></div>
+      </div>
+      <button class="gen-btn" id="a0-save" style="display:none;margin-top:0.75rem;background:var(--navy-light);color:var(--gold);border:1px solid var(--border-strong)" onclick="savePCS()">&#10022; Save as Master Document</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 0B -->
+<div id="a0b" class="agent-panel">
+  <div class="agent-card">
+    <div class="agent-card-header">
+      <div class="agent-num new">0B</div>
+      <div><h2>Niche Specialization Module</h2><div class="sub">Practice-area intelligence layer — run immediately after Agent 0</div></div>
+      <div class="vol-badge">Volume 1 · NEW</div>
+    </div>
+    <div class="agent-body">
+      <div class="placement-note"><span>&#9672;</span><span><strong>Run immediately after Agent 0.</strong> The Niche Intelligence Profile produced here is appended to your Practice Capital Summary and flows into every downstream agent.</span></div>
+      <p style="font-size:0.9rem;color:var(--text);margin-bottom:1.25rem;line-height:1.7">The Practice Capital Assessment is intentionally practice_area agnostic. This module adds the targeted intelligence layer that makes every downstream agent significantly more powerful.</p>
+      <div class="section-title">Step 1 — Select Your Primary Practice Area</div>
+      <div class="pa-grid">
+        <button class="pa-btn" data_area="immigration" onclick="selPA(this)">Immigration</button>
+        <button class="pa-btn" data_area="energy-regulatory" onclick="selPA(this)">Energy &amp; Regulatory</button>
+        <button class="pa-btn" data_area="commercial-litigation" onclick="selPA(this)">Commercial Litigation</button>
+        <button class="pa-btn" data_area="family-law" onclick="selPA(this)">Family Law</button>
+        <button class="pa-btn" data_area="criminal-defense" onclick="selPA(this)">Criminal Defense</button>
+        <button class="pa-btn" data_area="real-estate" onclick="selPA(this)">Real Estate</button>
+        <button class="pa-btn" data_area="employment" onclick="selPA(this)">Employment Law</button>
+        <button class="pa-btn" data_area="ip" onclick="selPA(this)">IP &amp; Patent</button>
+        <button class="pa-btn" data_area="estate-planning" onclick="selPA(this)">Estate Planning</button>
+        <button class="pa-btn" data_area="business" onclick="selPA(this)">Business / Transactional</button>
+        <button class="pa-btn" data_area="personal-injury" onclick="selPA(this)">Personal Injury</button>
+        <button class="pa-btn" data_area="other" onclick="selPA(this)">Other / Mixed</button>
+      </div>
+      <div class="collapsible" id="a0b-fields">
+        <div class="section-title">Step 2 — Niche Profile Inputs</div>
+        <div class="grid">
+          <div class="fg"><label>Primary client type</label><input type="text" id="a0b-client" placeholder="e.g. individuals, small businesses…"></div>
+          <div class="fg"><label>Geographic market</label><input type="text" id="a0b-geo" placeholder="e.g. Houston TX, Fort Worth…"></div>
+          <div class="fg"><label>Niche within practice area</label><input type="text" id="a0b-specific" placeholder="e.g. asylum cases, PHMSA compliance…"></div>
+          <div class="fg"><label>Top referral source types</label><input type="text" id="a0b-referral" placeholder="e.g. CPAs, community orgs, attorneys…"></div>
+        </div>
+        <div class="grid g1">
+          <div class="fg"><label>Biggest BD challenge in this practice area</label><textarea id="a0b-challenge" placeholder="What makes client development uniquely difficult in your niche?"></textarea></div>
+        </div>
+        <div class="grid g1">
+          <div class="fg"><label>Practice Capital Summary (from Agent 0)</label><textarea id="a0b-pcs" placeholder="Paste your Practice Capital Summary here for maximum specificity…" style="min-height:90px"></textarea></div>
+        </div>
+        <button class="gen-btn" id="a0b-btn" onclick="genAgent('a0b')">&#10022; Generate Niche Intelligence Profile &#8594;</button>
+        <div class="out-area" id="a0b-out">
+          <div class="out-hdr"><span>Niche Intelligence Profile — Append to Practice Capital Summary</span><button class="copy-btn" onclick="copyOut('a0b-content')">Copy</button></div>
+          <div class="out-content" id="a0b-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT 1 -->
+<div id="a1" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">1</div><div><h2>Market Intelligence &amp; Positioning</h2><div class="sub">40-target client list, referral map, LinkedIn profile, attorney bio, one_pager</div></div><div class="vol-badge">Volume 1</div></div><div class="agent-body">
+  <div class="pcs-banner" id="a1-pcs-banner"><strong>Practice Capital Summary</strong> — paste from Agent 0 for best results</div>
+  <div class="grid g1"><div class="fg"><label>Practice Capital Summary</label><textarea id="a1-pcs" style="min-height:90px" placeholder="Paste your Practice Capital Summary…" oninput="syncPCS(this.value)"></textarea></div></div>
+  <div class="grid">
+    <div class="fg"><label>Target client types (specific)</label><input type="text" id="a1-targets" placeholder="e.g. mid_size energy companies, immigrant families…"></div>
+    <div class="fg"><label>Geographic focus</label><input type="text" id="a1-geo" placeholder="e.g. Houston metro, Dallas-Fort Worth…"></div>
+  </div>
+  <div class="grid g1">
+    <div class="fg"><label>Companies / industries / associations to target (10–15)</label><textarea id="a1-companies" placeholder="List specific targets…"></textarea></div>
+    <div class="fg" style="margin-top:0.75rem"><label>Why you launched your own firm — your authentic narrative</label><textarea id="a1-why" placeholder="Your real reason — clients connect with authenticity…"></textarea></div>
+  </div>
+  <button class="gen-btn" id="a1-btn" onclick="genAgent('a1')">&#10022; Generate Positioning System &#8594;</button>
+  <div class="out-area" id="a1-out"><div class="out-hdr"><span>Market Intelligence &amp; Positioning</span><button class="copy-btn" onclick="copyOut('a1-content')">Copy</button></div><div class="out-content" id="a1-content"></div></div>
+</div></div></div>
+
+<!-- AGENT 1B -->
+<div id="a1b" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num new">1B</div><div><h2>Market Entry Agent</h2><div class="sub">New geography · satellite office · unfamiliar market</div></div><div class="vol-badge">Volume 1 · NEW</div></div><div class="agent-body">
+  <div class="placement-note"><span>&#9672;</span><span><strong>Use when entering a new geographic market.</strong> Agent 1 establishes who you are. This agent establishes the specific market you are entering and how.</span></div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'t-mi')">Market Intelligence</button>
+    <button class="tab-btn" onclick="switchTab(this,'t-ne')">Network Entry</button>
+    <button class="tab-btn" onclick="switchTab(this,'t-90')">90-Day Plan</button>
+  </div>
+  <div class="tab-pane active" id="t-mi">
+    <div class="grid">
+      <div class="fg"><label>Target city / market</label><input type="text" id="mi-city" placeholder="e.g. Houston, TX"></div>
+      <div class="fg"><label>Primary practice area</label><input type="text" id="mi-practice" placeholder="e.g. Energy &amp; Regulatory, Immigration…"></div>
+      <div class="fg"><label>Current network in this market</label><select id="mi-network"><option value="">Select…</option><option value="none">None — starting from zero</option><option value="minimal">Minimal — 1 to 5 contacts</option><option value="moderate">Moderate — 6 to 20 contacts</option><option value="established">Established — 20+ contacts</option></select></div>
+      <div class="fg"><label>Entry context</label><select id="mi-context"><option value="">Select…</option><option value="solo-launch">Launching solo practice</option><option value="satellite">Opening satellite office for existing firm</option><option value="lateral">Lateral hire — building book of business</option><option value="relocation">Relocating — rebuilding existing practice</option><option value="expansion">Expanding niche into new geography</option></select></div>
+    </div>
+    <div class="grid g1"><div class="fg"><label>Practice Capital Summary</label><textarea id="mi-pcs" style="min-height:80px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div>
+    <button class="gen-btn" onclick="genMI()">&#10022; Generate Market Intelligence Report &#8594;</button>
+    <div class="out-area" id="mi-out"><div class="out-hdr"><span>Market Intelligence Report</span><button class="copy-btn" onclick="copyOut('mi-content')">Copy</button></div><div class="out-content" id="mi-content"></div></div>
+  </div>
+  <div class="tab-pane" id="t-ne">
+    <div class="grid">
+      <div class="fg"><label>Target city</label><input type="text" id="ne-city" placeholder="e.g. Houston, TX"></div>
+      <div class="fg"><label>Practice area</label><input type="text" id="ne-practice" placeholder="e.g. Energy &amp; Regulatory…"></div>
+      <div class="fg"><label>Known local contacts</label><input type="text" id="ne-contacts" placeholder="e.g. 2 former colleagues, 1 CPA…"></div>
+      <div class="fg"><label>Bar associations joining</label><input type="text" id="ne-bars" placeholder="e.g. Houston Bar Association…"></div>
+    </div>
+    <div class="grid g1"><div class="fg"><label>What makes you different in this market</label><textarea id="ne-diff" placeholder="Your unique angle…"></textarea></div></div>
+    <button class="gen-btn" onclick="genNE()">&#10022; Generate Network Entry Strategy &#8594;</button>
+    <div class="out-area" id="ne-out"><div class="out-hdr"><span>Network Entry Strategy</span><button class="copy-btn" onclick="copyOut('ne-content')">Copy</button></div><div class="out-content" id="ne-content"></div></div>
+  </div>
+  <div class="tab-pane" id="t-90">
+    <div class="grid g3">
+      <div class="fg"><label>Target city</label><input type="text" id="nd-city" placeholder="Houston, TX"></div>
+      <div class="fg"><label>Practice area</label><input type="text" id="nd-practice" placeholder="Energy &amp; Regulatory"></div>
+      <div class="fg"><label>Launch start</label><input type="text" id="nd-start" placeholder="e.g. June 2026"></div>
+    </div>
+    <div class="grid">
+      <div class="fg"><label>Month 3 revenue target</label><input type="text" id="nd-revenue" placeholder="e.g. $15,000"></div>
+      <div class="fg"><label>Hours / week available for BD</label><select id="nd-hours"><option value="">Select…</option><option value="5">5 hours / week</option><option value="10">10 hours / week</option><option value="15">15 hours / week</option><option value="20+">20+ hours / week</option></select></div>
+    </div>
+    <div class="grid g1"><div class="fg"><label>Practice Capital Summary + Market Intelligence output</label><textarea id="nd-context" style="min-height:100px" placeholder="Paste both for a fully personalized 90-day plan…"></textarea></div></div>
+    <button class="gen-btn" onclick="genND()">&#10022; Generate 90-Day Market Entry Plan &#8594;</button>
+    <div class="out-area" id="nd-out"><div class="out-hdr"><span>90-Day Market Entry Plan</span><button class="copy-btn" onclick="copyOut('nd-content')">Copy</button></div><div class="out-content" id="nd-content"></div></div>
+  </div>
+</div></div></div>
+
+<!-- AGENTS 2–22: identical to original except gen_btn IDs preserved for JS -->
+<div id="a2" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">2</div><div><h2>Business Development &amp; Outreach</h2><div class="sub">Personalized outreach for any contact and the full document toolkit</div></div><div class="vol-badge">Volume 1</div></div><div class="agent-body">
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'a2-t1')">Contact Outreach</button><button class="tab-btn" onclick="switchTab(this,'a2-t2')">Document Toolkit</button></div>
+  <div class="tab-pane active" id="a2-t1">
+    <div class="grid"><div class="fg"><label>Contact name &amp; title</label><input type="text" id="a2-contact" placeholder="Name, title, company"></div><div class="fg"><label>How you know them</label><input type="text" id="a2-know" placeholder="Former colleague, referral source…"></div><div class="fg"><label>Trigger event / reason to reach out</label><input type="text" id="a2-trigger" placeholder="Recent news, promotion, shared connection…"></div><div class="fg"><label>Desired outcome</label><input type="text" id="a2-outcome" placeholder="Coffee meeting, referral, engagement…"></div></div>
+    <div class="grid g1"><div class="fg"><label>Practice Capital Summary</label><textarea id="a2-pcs" style="min-height:80px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div>
+    <button class="gen-btn" id="a2-btn" onclick="genAgent('a2')">&#10022; Generate Outreach Messages &#8594;</button>
+    <div class="out-area" id="a2-out"><div class="out-hdr"><span>Outreach Messages</span><button class="copy-btn" onclick="copyOut('a2-content')">Copy</button></div><div class="out-content" id="a2-content"></div></div>
+  </div>
+  <div class="tab-pane" id="a2-t2">
+    <div class="grid"><div class="fg"><label>Target client or audience</label><input type="text" id="a2-doc-target" placeholder="Who is this document for?"></div><div class="fg"><label>Their situation / legal needs</label><input type="text" id="a2-doc-needs" placeholder="What problem are they facing?"></div><div class="fg"><label>Document needed</label><select id="a2-doc-type"><option value="">Select…</option><option>Practice launch announcement</option><option>Practice overview one_pager</option><option>Client engagement proposal</option><option>LinkedIn launch post</option><option>Monthly retainer pitch</option><option>90-day plan for new client relationship</option></select></div></div>
+    <div class="grid g1"><div class="fg"><label>Practice Capital Summary</label><textarea id="a2-doc-pcs" style="min-height:80px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div>
+    <button class="gen-btn" id="a2-doc-btn" onclick="genAgent('a2-doc')">&#10022; Generate Document &#8594;</button>
+    <div class="out-area" id="a2-doc-out"><div class="out-hdr"><span>Document Output</span><button class="copy-btn" onclick="copyOut('a2-doc-content')">Copy</button></div><div class="out-content" id="a2-doc-content"></div></div>
+  </div>
+</div></div></div>
+
+<div id="a3" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">3</div><div><h2>Client Engagement &amp; Fee Strategy</h2><div class="sub">Client meeting intelligence briefs and fee structure recommendations</div></div><div class="vol-badge">Volume 1</div></div><div class="agent-body">
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'a3-t1')">Meeting Prep</button><button class="tab-btn" onclick="switchTab(this,'a3-t2')">Fee Strategy</button></div>
+  <div class="tab-pane active" id="a3-t1">
+    <div class="grid"><div class="fg"><label>Prospect / client name</label><input type="text" id="a3-name" placeholder="Name"></div><div class="fg"><label>Meeting type</label><select id="a3-meeting"><option value="">Select…</option><option>Initial intake / pitch meeting</option><option>Second meeting (already interested)</option><option>Existing client — new matter discussion</option><option>Referral source meeting</option></select></div><div class="fg"><label>Their situation</label><input type="text" id="a3-situation" placeholder="What brought them to you?"></div><div class="fg"><label>Matter type</label><input type="text" id="a3-matter" placeholder="e.g. contract dispute, immigration case…"></div></div>
+    <div class="grid g1"><div class="fg"><label>Practice Capital Summary</label><textarea id="a3-pcs" style="min-height:80px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div>
+    <button class="gen-btn" id="a3-btn" onclick="genAgent('a3')">&#10022; Generate Meeting Brief &#8594;</button>
+    <div class="out-area" id="a3-out"><div class="out-hdr"><span>Client Meeting Brief</span><button class="copy-btn" onclick="copyOut('a3-content')">Copy</button></div><div class="out-content" id="a3-content"></div></div>
+  </div>
+  <div class="tab-pane" id="a3-t2">
+    <div class="grid"><div class="fg"><label>Matter type &amp; scope</label><input type="text" id="a3-fee-matter" placeholder="e.g. contract negotiation, litigation defense…"></div><div class="fg"><label>Client type</label><input type="text" id="a3-fee-client" placeholder="e.g. small business, individual…"></div><div class="fg"><label>Your hourly rate ($)</label><input type="text" id="a3-fee-rate" placeholder="e.g. 450"></div><div class="fg"><label>Estimated hours</label><input type="text" id="a3-fee-hours" placeholder="e.g. 20-40 hours"></div><div class="fg"><label>Client's fee sensitivity</label><select id="a3-fee-sens"><option value="">Select…</option><option>Price-sensitive / budget constrained</option><option>Value-focused / will pay for quality</option><option>Unknown</option></select></div></div>
+    <button class="gen-btn" id="a3-fee-btn" onclick="genAgent('a3-fee')">&#10022; Generate Fee Recommendation &#8594;</button>
+    <div class="out-area" id="a3-fee-out"><div class="out-hdr"><span>Fee Strategy Recommendation</span><button class="copy-btn" onclick="copyOut('a3-fee-content')">Copy</button></div><div class="out-content" id="a3-fee-content"></div></div>
+  </div>
+</div></div></div>
+
+<div id="a4" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">4</div><div><h2>Execution, Coaching &amp; Operations</h2><div class="sub">Weekly BD rhythm, pipeline health, operations checklist, coaching engine</div></div><div class="vol-badge">Volume 1 · Intelligence Core</div></div><div class="agent-body">
+  <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'a4-t1')">Weekly Briefing</button><button class="tab-btn" onclick="switchTab(this,'a4-t2')">BD Rhythm</button><button class="tab-btn" onclick="switchTab(this,'a4-t3')">Operations Checklist</button><button class="tab-btn" onclick="switchTab(this,'a4-t4')">Coaching</button></div>
+  <div class="tab-pane active" id="a4-t1">
+    <div class="placement-note"><span>&#9672;</span><span>Run every Friday. Paste your week and get a prioritized brief for next week.</span></div>
+    <div class="grid g1"><div class="fg"><label>Outreach sent this week</label><textarea id="a4-outreach" placeholder="Who you contacted and how…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Conversations and outcomes</label><textarea id="a4-convos" placeholder="What happened in calls, meetings, emails…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Active pipeline — where things stand</label><textarea id="a4-pipeline" placeholder="List active prospects and their status…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Where you are stuck</label><textarea id="a4-stuck" placeholder="What isn't moving and why…"></textarea></div></div>
+    <button class="gen-btn" id="a4-btn" onclick="genAgent('a4')">&#10022; Generate Weekly Brief &#8594;</button>
+    <div class="out-area" id="a4-out"><div class="out-hdr"><span>Weekly Intelligence Brief</span><button class="copy-btn" onclick="copyOut('a4-content')">Copy</button></div><div class="out-content" id="a4-content"></div></div>
+  </div>
+  <div class="tab-pane" id="a4-t2">
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:1rem">10–14 hours per week. Click each day to expand.</p>
+    <details class="rhythm-day"><summary>&#9670; MON — Intelligence (45 min)</summary><p>Review client target list. Update trigger event notes. Identify one new company to add to pipeline. Read one piece of industry news about a top-5 target.</p></details>
+    <details class="rhythm-day"><summary>&#9670; TUE — Outreach (8–10 messages)</summary><p>Mix of former client reactivations, referral source touches, and direct prospect outreach. Every message personalized. Never use "I hope this finds you well."</p></details>
+    <details class="rhythm-day"><summary>&#9670; WED — Positioning (60 min)</summary><p>Update one document based on a conversation from the prior week. Customize a proposal for one active prospect. Write one LinkedIn post — observation, not announcement.</p></details>
+    <details class="rhythm-day"><summary>&#9670; THU — Relationships (2 hours)</summary><p>One call with a referral source or network contact. One CPA/banker/broker outreach. Deep-dive on two target companies — know their business before you call.</p></details>
+    <details class="rhythm-day"><summary>&#9670; FRI — Pipeline Review</summary><p>Update target tracker. Identify what is stalled and why. Run the Weekly Briefing above. Schedule next week's BD time as calendar blocks before you close your laptop.</p></details>
+  </div>
+  <div class="tab-pane" id="a4-t3">
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:1rem;font-style:italic">Complete before opening your first client matter.</p>
+    <div style="font-family:var(--mono);font-size:0.62rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem">Legal &amp; Compliance</div>
+    <div class="checklist"><div class="cl-item"><div class="cb">&#10003;</div><span>State bar registration current and in good standing</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>Malpractice insurance purchased and active</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>IOLTA / trust account opened at approved institution</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>Business entity formed (PLLC or PC)</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>EIN obtained from IRS</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>Engagement letter template drafted and reviewed</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>Conflict check system in place</span></div></div>
+    <div style="font-family:var(--mono);font-size:0.62rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin:1rem 0 0.5rem">Technology</div>
+    <div class="checklist"><div class="cl-item"><div class="cb">&#10003;</div><span>Practice management software configured (Clio, MyCase, or equivalent)</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>Secure email and document storage set up</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>Website live with bio, practice areas, contact form</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>eSignature solution in place</span></div></div>
+    <div style="font-family:var(--mono);font-size:0.62rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin:1rem 0 0.5rem">Financial</div>
+    <div class="checklist"><div class="cl-item"><div class="cb">&#10003;</div><span>Business checking account opened</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>Accounting software configured</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>CPA engaged for business tax planning</span></div><div class="cl-item"><div class="cb">&#10003;</div><span>LawPay or equivalent configured</span></div></div>
+  </div>
+  <div class="tab-pane" id="a4-t4">
+    <div class="grid g1"><div class="fg"><label>What is not working or what do you need help with?</label><textarea id="a4-coach-issue" style="min-height:90px" placeholder="Be specific and honest…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Context (Practice Capital Summary or current situation)</label><textarea id="a4-coach-pcs" style="min-height:80px" placeholder="Paste your Practice Capital Summary or describe your current situation…"></textarea></div></div>
+    <button class="gen-btn" id="a4-coach-btn" onclick="genAgent('a4-coach')">&#10022; Get Coaching &#8594;</button>
+    <div class="out-area" id="a4-coach-out"><div class="out-hdr"><span>Coaching Response</span><button class="copy-btn" onclick="copyOut('a4-coach-content')">Copy</button></div><div class="out-content" id="a4-coach-content"></div></div>
+  </div>
+</div></div></div>
+
+<!-- AGENTS 5-22: condensed, identical to original -->
+<div id="a5" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">5</div><div><h2>Legal Research &amp; Document Drafting</h2><div class="sub">First drafts of contracts, demand letters, motions, research memos, and client explanations</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="warning-box"><span>&#9888;</span><span>Every document produced must be reviewed by a licensed attorney before use. This agent eliminates the blank page — not the review.</span></div><div class="grid"><div class="fg"><label>Document type</label><select id="a5-type"><option value="">Select…</option><option>Contract / agreement</option><option>Demand letter</option><option>Motion draft</option><option>Legal research memo</option><option>Opinion letter structure</option><option>Client explanation (plain English)</option></select></div><div class="fg"><label>Jurisdiction &amp; governing law</label><input type="text" id="a5-jx" placeholder="e.g. Texas state court, federal…"></div><div class="fg"><label>Tone</label><select id="a5-tone"><option value="">Select…</option><option>Formal / legal standard</option><option>Plain English (client_facing)</option><option>Adversarial (demand / litigation)</option><option>Collaborative (transactional)</option></select></div></div><div class="grid g1"><div class="fg"><label>Purpose — what this document needs to accomplish</label><textarea id="a5-purpose" placeholder="What must this document do?"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Parties, key terms, amounts, obligations</label><textarea id="a5-details" placeholder="All relevant specifics…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Any non_standard provisions or special requirements</label><textarea id="a5-special" placeholder="Unusual terms, client preferences, jurisdiction_specific needs…"></textarea></div></div><button class="gen-btn" id="a5-btn" onclick="genAgent('a5')">&#10022; Generate Document Draft &#8594;</button><div class="out-area" id="a5-out"><div class="out-hdr"><span>Document Draft — Review Before Use</span><button class="copy-btn" onclick="copyOut('a5-content')">Copy</button></div><div class="out-content" id="a5-content"></div></div></div></div></div>
+
+<div id="a6" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">6</div><div><h2>Client Communication</h2><div class="sub">Every client_facing message written in your voice at the right tone for the relationship</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Client name</label><input type="text" id="a6-client" placeholder="Client name"></div><div class="fg"><label>Communication type</label><select id="a6-type"><option value="">Select…</option><option>Status update</option><option>Legal development alert</option><option>Scope change notification</option><option>Bad news delivery</option><option>Deadline / next_steps summary</option><option>Closing letter and matter summary</option></select></div><div class="fg"><label>Tone</label><select id="a6-tone"><option value="">Select…</option><option>Reassuring and warm</option><option>Direct and professional</option><option>Formal</option><option>Urgent</option></select></div></div><div class="grid g1"><div class="fg"><label>What happened / what needs to be communicated</label><textarea id="a6-what" placeholder="Describe the situation honestly…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Key message the client must understand</label><textarea id="a6-key" placeholder="The one thing they must walk away understanding…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Next steps or actions required of client</label><textarea id="a6-next" placeholder="What do you need from them?"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Practice Capital Summary (for voice context)</label><textarea id="a6-pcs" style="min-height:60px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div><button class="gen-btn" id="a6-btn" onclick="genAgent('a6')">&#10022; Generate Client Communication &#8594;</button><div class="out-area" id="a6-out"><div class="out-hdr"><span>Client Communication Draft</span><button class="copy-btn" onclick="copyOut('a6-content')">Copy</button></div><div class="out-content" id="a6-content"></div></div></div></div></div>
+
+<div id="a7" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">7</div><div><h2>Collections &amp; Billing Follow-Up</h2><div class="sub">Invoice follow_up sequences, retainer replenishment, fee dispute responses</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Client name</label><input type="text" id="a7-client" placeholder="Client name"></div><div class="fg"><label>Communication stage</label><select id="a7-stage"><option value="">Select…</option><option>First reminder (10 days past due)</option><option>Second notice (30 days past due)</option><option>Final demand (60 days past due)</option><option>Collections referral letter</option><option>Retainer replenishment request</option><option>Fee dispute response</option><option>Payment plan proposal</option></select></div><div class="fg"><label>Amount outstanding ($)</label><input type="text" id="a7-amount" placeholder="e.g. 4500"></div><div class="fg"><label>Days past due</label><input type="text" id="a7-days" placeholder="e.g. 32"></div><div class="fg"><label>Client's explanation (if any)</label><input type="text" id="a7-explain" placeholder="What have they said?"></div><div class="fg"><label>Preferred outcome</label><select id="a7-outcome"><option value="">Select…</option><option>Payment in full by specific date</option><option>Payment plan over 3 months</option><option>Escalation to collections</option></select></div></div><button class="gen-btn" id="a7-btn" onclick="genAgent('a7')">&#10022; Generate Collections Message &#8594;</button><div class="out-area" id="a7-out"><div class="out-hdr"><span>Collections / Billing Communication</span><button class="copy-btn" onclick="copyOut('a7-content')">Copy</button></div><div class="out-content" id="a7-content"></div></div></div></div></div>
+
+<div id="a8" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">8</div><div><h2>Deadline &amp; Docket Intelligence</h2><div class="sub">Complete deadline chains, formatted docket checklists, and critical dates memos</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="warning-box"><span>&#9888;</span><span>Always verify all deadlines against applicable rules before docketing.</span></div><div class="grid"><div class="fg"><label>Matter type</label><input type="text" id="a8-matter" placeholder="e.g. breach of contract, immigration removal…"></div><div class="fg"><label>Jurisdiction</label><input type="text" id="a8-jx" placeholder="e.g. S.D. Texas, Texas state court…"></div><div class="fg"><label>Triggering event</label><input type="text" id="a8-trigger" placeholder="e.g. service of process, complaint filed…"></div><div class="fg"><label>Triggering event date</label><input type="text" id="a8-date" placeholder="e.g. May 28, 2026"></div><div class="fg"><label>Client name</label><input type="text" id="a8-client" placeholder="Client name"></div><div class="fg"><label>Matter number</label><input type="text" id="a8-matter-num" placeholder="Your matter number"></div></div><button class="gen-btn" id="a8-btn" onclick="genAgent('a8')">&#10022; Generate Deadline Chain &#8594;</button><div class="out-area" id="a8-out"><div class="out-hdr"><span>Deadline Chain &amp; Docket Checklist — Verify Before Docketing</span><button class="copy-btn" onclick="copyOut('a8-content')">Copy</button></div><div class="out-content" id="a8-content"></div></div></div></div></div>
+
+<div id="a9" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">9</div><div><h2>Referral Relationship Manager</h2><div class="sub">Thank-you notes, re_engagement messages, reciprocal referral suggestions</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Referral source name &amp; profession</label><input type="text" id="a9-source" placeholder="Name, CPA / attorney / banker…"></div><div class="fg"><label>Communication type</label><select id="a9-type"><option value="">Select…</option><option>Thank-you after referral received</option><option>Matter outcome update</option><option>Re-engagement after 90+ days silence</option><option>Congratulatory note on milestone</option><option>Reciprocal referral suggestion</option><option>Annual relationship check_in</option></select></div><div class="fg"><label>Last contact date and what was discussed</label><input type="text" id="a9-last" placeholder="When and what…"></div><div class="fg"><label>Specific context for this touch</label><input type="text" id="a9-context" placeholder="What triggered this outreach?"></div></div><div class="grid g1"><div class="fg"><label>Practice Capital Summary (for voice)</label><textarea id="a9-pcs" style="min-height:70px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div><button class="gen-btn" id="a9-btn" onclick="genAgent('a9')">&#10022; Generate Referral Message &#8594;</button><div class="out-area" id="a9-out"><div class="out-hdr"><span>Referral Source Message</span><button class="copy-btn" onclick="copyOut('a9-content')">Copy</button></div><div class="out-content" id="a9-content"></div></div></div></div></div>
+
+<div id="a10" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">10</div><div><h2>Thought Leadership &amp; Visibility</h2><div class="sub">LinkedIn articles, client alerts, speaking proposals, bar publication drafts</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Content type</label><select id="a10-type"><option value="">Select…</option><option>LinkedIn article</option><option>Client legal alert</option><option>Bar journal submission</option><option>Speaking topic proposal</option><option>Client newsletter content</option><option>Social proof post</option></select></div><div class="fg"><label>Target audience</label><select id="a10-audience"><option value="">Select…</option><option>Current and prospective clients</option><option>Referral sources</option><option>Legal peers</option><option>General public / LinkedIn</option></select></div><div class="fg"><label>Desired length</label><select id="a10-length"><option value="">Select…</option><option>Short (under 500 words)</option><option>Medium (500–1,000 words)</option><option>Long (1,000+ words)</option></select></div></div><div class="grid g1"><div class="fg"><label>Topic / legal development</label><textarea id="a10-topic" placeholder="What are you writing about?"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Your perspective or position on the issue</label><textarea id="a10-angle" placeholder="What's your take?"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Relevant experience to reference</label><textarea id="a10-exp" placeholder="Cases, client work, or background that lends credibility…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Practice Capital Summary (for voice)</label><textarea id="a10-pcs" style="min-height:70px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div><button class="gen-btn" id="a10-btn" onclick="genAgent('a10')">&#10022; Generate Content &#8594;</button><div class="out-area" id="a10-out"><div class="out-hdr"><span>Thought Leadership Content</span><button class="copy-btn" onclick="copyOut('a10-content')">Copy</button></div><div class="out-content" id="a10-content"></div></div></div></div></div>
+
+<div id="a11" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">11</div><div><h2>New Matter Intake</h2><div class="sub">Intake questionnaire, conflict check list, scope outline, engagement letter draft</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Prospective client name</label><input type="text" id="a11-client" placeholder="Client name"></div><div class="fg"><label>Matter type</label><input type="text" id="a11-matter" placeholder="e.g. breach of contract, asylum application…"></div><div class="fg"><label>Apparent complexity</label><select id="a11-complex"><option value="">Select…</option><option>Straightforward</option><option>Moderate</option><option>Complex</option></select></div><div class="fg"><label>Fee structure for this matter</label><input type="text" id="a11-fee" placeholder="e.g. hourly, flat fee, contingency…"></div></div><div class="grid g1"><div class="fg"><label>What the client described in the intake call</label><textarea id="a11-desc" placeholder="What did they tell you? Quote them if helpful…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Known parties on the other side (for conflict check)</label><textarea id="a11-adverse" placeholder="Names of adverse parties, their counsel if known…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Any red flags or concerns from the intake</label><textarea id="a11-flags" placeholder="Anything that gave you pause?"></textarea></div></div><button class="gen-btn" id="a11-btn" onclick="genAgent('a11')">&#10022; Generate Intake Package &#8594;</button><div class="out-area" id="a11-out"><div class="out-hdr"><span>New Matter Intake Package — Review Before Use</span><button class="copy-btn" onclick="copyOut('a11-content')">Copy</button></div><div class="out-content" id="a11-content"></div></div></div></div></div>
+
+<div id="a12" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">12</div><div><h2>Financial Intelligence</h2><div class="sub">Monthly revenue summary, realization rate, client profitability, collections priority</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="placement-note"><span>&#9672;</span><span>Run on the first Monday of every month. Pair the collections priority list with Agent 7.</span></div><div class="grid"><div class="fg"><label>Month / period</label><input type="text" id="a12-month" placeholder="e.g. May 2026"></div><div class="fg"><label>Month number in practice</label><input type="text" id="a12-monthnum" placeholder="e.g. Month 4"></div><div class="fg"><label>Total fees billed ($)</label><input type="text" id="a12-billed" placeholder="e.g. 28000"></div><div class="fg"><label>Total fees collected ($)</label><input type="text" id="a12-collected" placeholder="e.g. 21000"></div><div class="fg"><label>Monthly overhead ($)</label><input type="text" id="a12-overhead" placeholder="e.g. 3500"></div><div class="fg"><label>Hours worked</label><input type="text" id="a12-worked" placeholder="e.g. 160"></div><div class="fg"><label>Hours billed</label><input type="text" id="a12-billed-hrs" placeholder="e.g. 95"></div><div class="fg"><label>Year 1 target ($)</label><input type="text" id="a12-target" placeholder="e.g. 300000"></div></div><div class="grid g1"><div class="fg"><label>Outstanding receivables (past due)</label><textarea id="a12-ar" placeholder="Client name, amount, days past due for each…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Client breakdown (optional)</label><textarea id="a12-clients" placeholder="Client, fees billed, fees collected this month…"></textarea></div></div><button class="gen-btn" id="a12-btn" onclick="genAgent('a12')">&#10022; Generate Financial Brief &#8594;</button><div class="out-area" id="a12-out"><div class="out-hdr"><span>Monthly Financial Intelligence Brief</span><button class="copy-btn" onclick="copyOut('a12-content')">Copy</button></div><div class="out-content" id="a12-content"></div></div></div></div></div>
+
+<div id="a13" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">13</div><div><h2>Difficult Conversation Preparation</h2><div class="sub">Script any difficult client conversation — bad news, fee disputes, ending relationships</div></div><div class="vol-badge">Volume 2</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Client name</label><input type="text" id="a13-client" placeholder="Client name"></div><div class="fg"><label>Conversation type</label><select id="a13-type"><option value="">Select…</option><option>Client unhappy with outcome</option><option>Fee dispute</option><option>Case / matter has weakened significantly</option><option>Ending the client relationship</option><option>Deadline or error to disclose</option><option>Scope dispute</option></select></div><div class="fg"><label>Client's likely emotional state</label><select id="a13-emotion"><option value="">Select…</option><option>Anxious / worried</option><option>Angry</option><option>Disappointed</option><option>Confused</option><option>Likely to be shocked</option></select></div></div><div class="grid g1"><div class="fg"><label>What needs to be communicated — describe specifically and honestly</label><textarea id="a13-what" placeholder="Be direct. The more honest you are here, the more useful the output…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Your desired outcome from this conversation</label><textarea id="a13-outcome" placeholder="What does a successful conversation look like?"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>What you are most concerned about</label><textarea id="a13-concern" placeholder="What keeps you up about this conversation?"></textarea></div></div><button class="gen-btn" id="a13-btn" onclick="genAgent('a13')">&#10022; Generate Conversation Guide &#8594;</button><div class="out-area" id="a13-out"><div class="out-hdr"><span>Difficult Conversation Guide</span><button class="copy-btn" onclick="copyOut('a13-content')">Copy</button></div><div class="out-content" id="a13-content"></div></div></div></div></div>
+
+<div id="a14" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">14</div><div><h2>Conflicts Management</h2><div class="sub">Conflict checks, lateral conflict screening, and conflict waiver letters</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="warning-box"><span>&#9888;</span><span><strong>Bar discipline risk.</strong> Every matter must be conflict_checked before engagement.</span></div><div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'a14-t1')">Conflict Check</button><button class="tab-btn" onclick="switchTab(this,'a14-t2')">Lateral Screen</button><button class="tab-btn" onclick="switchTab(this,'a14-t3')">Waiver Letter</button></div><div class="tab-pane active" id="a14-t1"><div class="grid"><div class="fg"><label>Prospective client name(s)</label><input type="text" id="a14-client" placeholder="All client names"></div><div class="fg"><label>Adverse parties</label><input type="text" id="a14-adverse" placeholder="All adverse party names"></div><div class="fg"><label>Related parties</label><input type="text" id="a14-related" placeholder="Guarantors, affiliates, principals…"></div><div class="fg"><label>Matter type</label><input type="text" id="a14-matter" placeholder="e.g. contract dispute, employment claim…"></div></div><div class="grid g1"><div class="fg"><label>Your current and recent client list (summarize)</label><textarea id="a14-clients" placeholder="Names of current and recent clients for comparison…"></textarea></div></div><button class="gen-btn" id="a14-btn" onclick="genAgent('a14')">&#10022; Run Conflict Check &#8594;</button><div class="out-area" id="a14-out"><div class="out-hdr"><span>Conflict Check Report</span><button class="copy-btn" onclick="copyOut('a14-content')">Copy</button></div><div class="out-content" id="a14-content"></div></div></div><div class="tab-pane" id="a14-t2"><div class="grid g1"><div class="fg"><label>Former firm name</label><input type="text" id="a14-firm" placeholder="Former firm"></div><div class="fg" style="margin-top:0.75rem"><label>Matters you worked on at the former firm</label><textarea id="a14-firm-matters" placeholder="List matters you touched, even peripherally…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>New prospective client and matter</label><textarea id="a14-new-matter" placeholder="Who is the new client and what is the matter?"></textarea></div></div><button class="gen-btn" id="a14-lat-btn" onclick="genAgent('a14-lat')">&#10022; Run Lateral Screen &#8594;</button><div class="out-area" id="a14-lat-out"><div class="out-hdr"><span>Lateral Conflict Screen Report</span><button class="copy-btn" onclick="copyOut('a14-lat-content')">Copy</button></div><div class="out-content" id="a14-lat-content"></div></div></div><div class="tab-pane" id="a14-t3"><div class="grid"><div class="fg"><label>Client receiving the waiver letter</label><input type="text" id="a14-waiver-client" placeholder="Client name"></div><div class="fg"><label>Nature of the conflict</label><textarea id="a14-conflict-nature" placeholder="Describe the conflict clearly…"></textarea></div><div class="fg"><label>Your state</label><input type="text" id="a14-state-waiver" placeholder="e.g. Texas"></div></div><button class="gen-btn" id="a14-waiver-btn" onclick="genAgent('a14-waiver')">&#10022; Generate Waiver Letter &#8594;</button><div class="out-area" id="a14-waiver-out"><div class="out-hdr"><span>Conflict Waiver Letter — Review Before Use</span><button class="copy-btn" onclick="copyOut('a14-waiver-content')">Copy</button></div><div class="out-content" id="a14-waiver-content"></div></div></div></div></div></div>
+
+<div id="a15" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">15</div><div><h2>Matter Closing</h2><div class="sub">Complete closing package — checklist, trust reconciliation, file retention, closing letter</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="placement-note"><span>&#9672;</span><span>Run at the conclusion of every matter. Failure to formally close matters is a common source of bar complaints against solo attorneys.</span></div><div class="grid"><div class="fg"><label>Client name</label><input type="text" id="a15-client" placeholder="Client name"></div><div class="fg"><label>Matter type</label><input type="text" id="a15-matter" placeholder="e.g. commercial litigation, immigration…"></div><div class="fg"><label>Matter outcome</label><input type="text" id="a15-outcome" placeholder="e.g. settled, judgment obtained, visa approved…"></div><div class="fg"><label>Trust account balance remaining ($)</label><input type="text" id="a15-trust" placeholder="e.g. 0 or 500"></div><div class="fg"><label>Outstanding fees owed</label><input type="text" id="a15-fees" placeholder="e.g. $0 or $1,200"></div><div class="fg"><label>Your state</label><input type="text" id="a15-state" placeholder="e.g. Texas"></div></div><div class="grid g1"><div class="fg"><label>Documents to return to client</label><textarea id="a15-docs" placeholder="List documents to return or confirm destroyed…"></textarea></div></div><button class="gen-btn" id="a15-btn" onclick="genAgent('a15')">&#10022; Generate Closing Package &#8594;</button><div class="out-area" id="a15-out"><div class="out-hdr"><span>Matter Closing Package — Review Before Use</span><button class="copy-btn" onclick="copyOut('a15-content')">Copy</button></div><div class="out-content" id="a15-content"></div></div></div></div></div>
+
+<div id="a16" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">16</div><div><h2>Practice Continuity &amp; Succession</h2><div class="sub">Succession plan, backup attorney agreement, emergency client notification</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Your name, state, and practice areas</label><input type="text" id="a16-name" placeholder="Name, Texas, Commercial Litigation…"></div><div class="fg"><label>Designated backup attorney (if identified)</label><input type="text" id="a16-backup" placeholder="Name and firm if known"></div><div class="fg"><label>Number of active matters (approx)</label><input type="text" id="a16-matters" placeholder="e.g. 12"></div><div class="fg"><label>Practice management software</label><input type="text" id="a16-software" placeholder="e.g. Clio, MyCase…"></div><div class="fg"><label>Trust account institution</label><input type="text" id="a16-trust" placeholder="Bank name"></div><div class="fg"><label>Approximate trust balance ($)</label><input type="text" id="a16-balance" placeholder="e.g. 25000"></div></div><button class="gen-btn" id="a16-btn" onclick="genAgent('a16')">&#10022; Generate Succession Plan &#8594;</button><div class="out-area" id="a16-out"><div class="out-hdr"><span>Practice Continuity &amp; Succession Plan</span><button class="copy-btn" onclick="copyOut('a16-content')">Copy</button></div><div class="out-content" id="a16-content"></div></div></div></div></div>
+
+<div id="a17" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">17</div><div><h2>CLE Compliance Tracker</h2><div class="sub">State-specific requirements, tracking calendar, credit type breakdown</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>State bar</label><input type="text" id="a17-state" placeholder="e.g. Texas, California…"></div><div class="fg"><label>Bar admission date</label><input type="text" id="a17-admitted" placeholder="e.g. November 2017"></div><div class="fg"><label>Current compliance period</label><input type="text" id="a17-period" placeholder="e.g. 2025-2026"></div><div class="fg"><label>Credits completed so far</label><input type="text" id="a17-credits" placeholder="e.g. 8 of 15"></div><div class="fg"><label>Practice areas</label><input type="text" id="a17-practice" placeholder="e.g. Commercial Litigation, IP…"></div><div class="fg"><label>Specialty certification requirements (if any)</label><input type="text" id="a17-specialty" placeholder="e.g. Board Certified Civil Trial Law…"></div></div><button class="gen-btn" id="a17-btn" onclick="genAgent('a17')">&#10022; Generate CLE Compliance Plan &#8594;</button><div class="out-area" id="a17-out"><div class="out-hdr"><span>CLE Compliance Plan &amp; Tracking Calendar</span><button class="copy-btn" onclick="copyOut('a17-content')">Copy</button></div><div class="out-content" id="a17-content"></div></div></div></div></div>
+
+<div id="a18" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">18</div><div><h2>Trust Accounting Procedures</h2><div class="sub">IOLTA operating manual, reconciliation protocol, disbursement procedures</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="warning-box"><span>&#9888;</span><span><strong>Highest bar discipline risk.</strong> Trust accounting violations are the leading cause of bar discipline against solo attorneys.</span></div><div class="grid"><div class="fg"><label>Your state</label><input type="text" id="a18-state" placeholder="e.g. Texas"></div><div class="fg"><label>Trust account institution</label><input type="text" id="a18-bank" placeholder="Bank name"></div><div class="fg"><label>Fee structures you use</label><input type="text" id="a18-fees" placeholder="e.g. hourly, flat fee, retainer…"></div><div class="fg"><label>Accounting software</label><input type="text" id="a18-software" placeholder="e.g. QuickBooks, Clio Manage…"></div></div><div class="grid g1"><div class="fg"><label>Specific trust accounting questions</label><textarea id="a18-questions" placeholder="Any specific concerns or situations you need guidance on?"></textarea></div></div><button class="gen-btn" id="a18-btn" onclick="genAgent('a18')">&#10022; Generate Trust Accounting Manual &#8594;</button><div class="out-area" id="a18-out"><div class="out-hdr"><span>Trust Accounting Manual — Verify Against State Rules</span><button class="copy-btn" onclick="copyOut('a18-content')">Copy</button></div><div class="out-content" id="a18-content"></div></div></div></div></div>
+
+<div id="a19" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">19</div><div><h2>Technology Risk &amp; Cybersecurity</h2><div class="sub">Vendor data risk, cybersecurity standards, data breach response protocol</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Your complete technology stack</label><textarea id="a19-stack" placeholder="List every tool: practice management, email, storage, billing…"></textarea></div><div class="fg"><label>Client data stored in cloud</label><textarea id="a19-cloud" placeholder="What client data lives in cloud services?"></textarea></div></div><div class="grid"><div class="fg"><label>Your state</label><input type="text" id="a19-state" placeholder="e.g. Texas"></div><div class="fg"><label>Remote work setup</label><input type="text" id="a19-remote" placeholder="e.g. home office, coffee shops, client sites…"></div></div><div class="grid g1"><div class="fg"><label>Security concerns or prior incidents</label><textarea id="a19-concerns" placeholder="Any concerns, suspicious activity, or past incidents?"></textarea></div></div><button class="gen-btn" id="a19-btn" onclick="genAgent('a19')">&#10022; Generate Technology Risk Report &#8594;</button><div class="out-area" id="a19-out"><div class="out-hdr"><span>Technology Risk &amp; Cybersecurity Report</span><button class="copy-btn" onclick="copyOut('a19-content')">Copy</button></div><div class="out-content" id="a19-content"></div></div></div></div></div>
+
+<div id="a20" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">20</div><div><h2>Attorney Advertising Compliance</h2><div class="sub">Bar rules review of all marketing materials before use</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="warning-box"><span>&#9888;</span><span>Attorney advertising rules vary by state. Review every marketing material before it is published or sent.</span></div><div class="grid"><div class="fg"><label>Your state bar</label><input type="text" id="a20-state" placeholder="e.g. Texas, California…"></div><div class="fg"><label>Material type</label><select id="a20-type"><option value="">Select…</option><option>Website content</option><option>LinkedIn profile</option><option>LinkedIn post or article</option><option>Outreach / solicitation message</option><option>Practice overview one_pager</option><option>Email signature</option></select></div></div><div class="grid g1"><div class="fg"><label>Content to review — paste here</label><textarea id="a20-content-in" style="min-height:110px" placeholder="Paste the marketing content you want reviewed…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Specific concerns about this content</label><textarea id="a20-concerns" placeholder="Anything you're uncertain about?"></textarea></div></div><button class="gen-btn" id="a20-btn" onclick="genAgent('a20')">&#10022; Review for Advertising Compliance &#8594;</button><div class="out-area" id="a20-out"><div class="out-hdr"><span>Advertising Compliance Review — Verify Against Current State Rules</span><button class="copy-btn" onclick="copyOut('a20-content')">Copy</button></div><div class="out-content" id="a20-content"></div></div></div></div></div>
+
+<div id="a21" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">21</div><div><h2>Launch Pricing Strategy</h2><div class="sub">Rate decisions, introductory pricing analysis, raise strategies</div></div><div class="vol-badge">Volume 3</div></div><div class="agent-body"><div class="grid"><div class="fg"><label>Your target hourly rate ($)</label><input type="text" id="a21-rate" placeholder="e.g. 450"></div><div class="fg"><label>Market rate range (if known)</label><input type="text" id="a21-market" placeholder="e.g. $350–$550 for commercial lit in Houston"></div></div><div class="grid g1"><div class="fg"><label>Current pricing concern or decision</label><textarea id="a21-concern" placeholder="What pricing decision are you facing right now?"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Practice areas and typical matters</label><textarea id="a21-matters" placeholder="What types of work and what are typical matter sizes?"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Practice Capital Summary</label><textarea id="a21-pcs" style="min-height:70px" placeholder="Paste your Practice Capital Summary…"></textarea></div></div><button class="gen-btn" id="a21-btn" onclick="genAgent('a21')">&#10022; Generate Pricing Strategy &#8594;</button><div class="out-area" id="a21-out"><div class="out-hdr"><span>Launch Pricing Strategy</span><button class="copy-btn" onclick="copyOut('a21-content')">Copy</button></div><div class="out-content" id="a21-content"></div></div></div></div></div>
+
+<div id="a22" class="agent-panel"><div class="agent-card"><div class="agent-card-header"><div class="agent-num">22</div><div><h2>Practice Intelligence &amp; Feedback Loop</h2><div class="sub">Monthly calibration of positioning, outreach, fees, and pipeline</div></div><div class="vol-badge">Volume 3 · Learning System</div></div><div class="agent-body"><div class="placement-note"><span>&#9672;</span><span>Run monthly alongside Agent 12. This agent identifies what the market is telling you and produces specific calibration recommendations for every agent in the system.</span></div><div class="grid g1"><div class="fg"><label>Practice Capital Summary (original from Agent 0)</label><textarea id="a22-pcs" style="min-height:80px" placeholder="Paste your original Practice Capital Summary…"></textarea></div></div><div class="grid"><div class="fg"><label>Month / period</label><input type="text" id="a22-month" placeholder="e.g. May 2026"></div></div><div class="grid g1"><div class="fg"><label>Outreach results this month</label><textarea id="a22-outreach" placeholder="What you sent, response rates, what worked…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Client meeting outcomes</label><textarea id="a22-meetings" placeholder="Pitches made, engagements opened, conversions…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>Fee outcomes</label><textarea id="a22-fees" placeholder="Rates accepted, pushback received, discounts given…"></textarea></div><div class="fg" style="margin-top:0.75rem"><label>What the market is telling you</label><textarea id="a22-market" placeholder="Patterns you're noticing in responses, objections, wins…"></textarea></div></div><button class="gen-btn" id="a22-btn" onclick="genAgent('a22')">&#10022; Generate Calibration Report &#8594;</button><div class="out-area" id="a22-out"><div class="out-hdr"><span>Practice Intelligence Calibration Report</span><button class="copy-btn" onclick="copyOut('a22-content')">Copy</button></div><div class="out-content" id="a22-content"></div></div></div></div></div>
+
+</div><!-- end .main -->
+
+<script>
+
+
+
+// ── STAGING DETECTION ──
+(function() {
+  if (window.location.hostname.includes('staging') || 
+      window.location.pathname.includes('staging') ||
+      window.location.search.includes('staging=true')) {
+    var banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#C1440E;color:white;text-align:center;font-family:monospace;font-size:11px;font-weight:700;letter-spacing:0.15em;padding:4px;z-index:99999;text-transform:uppercase';
+    banner.textContent = '⚠ STAGING ENVIRONMENT — NOT FOR CLIENT USE';
+    document.body.prepend(banner);
+    document.title = '[STAGING] ' + document.title;
+  }
+})();
+
+
+
+// ── FIX 5: Mobile nav toggle ──
+function toggleNav() {
+  document.getElementById('nav').classList.toggle('open');
+  document.getElementById('nav-overlay').classList.toggle('open');
+}
+
+// ── NAVIGATION ──
+function show(id) {
+  document.querySelectorAll('.agent-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById(id);
+  if(panel) { panel.classList.add('active'); window.scrollTo(0,0); }
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+  });
+  // Close mobile nav after selection
+  document.getElementById('nav').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+}
+
+// ── TABS ──
+function switchTab(btn, id) {
+  const body = btn.closest('.agent-body') || btn.closest('.agent-panel');
+  body.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  body.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const pane = document.getElementById(id);
+  if(pane) pane.classList.add('active');
+}
+
+// ── PRACTICE AREA SELECTOR ──
+let selArea = '';
+const paHints = {
+  'immigration':{'client':'Individuals, families, employers','referral':'CPAs, community organizations, other attorneys','challenge':'Community trust_building, language barriers, fee sensitivity, high case volume'},
+  'energy-regulatory':{'client':'Energy companies, pipeline operators, midstream firms','referral':'Industry trade associations, compliance officers, energy attorneys','challenge':'Long sales cycles, highly specialized client base, relationship_driven market'},
+  'commercial-litigation':{'client':'Businesses, executives, commercial landlords','referral':'CPAs, bankers, corporate counsel, business brokers','challenge':'Demonstrating track record without firm brand behind you'},
+  'family-law':{'client':'Individuals navigating divorce, custody disputes','referral':'Therapists, financial advisors, other family law attorneys','challenge':'Emotional client dynamics, high consultation volume with low conversion'},
+  'criminal-defense':{'client':'Individuals, families of accused','referral':'Bail bondsmen, other attorneys, community organizations','challenge':'Reputation management, trust_building in high_stakes emotional context'},
+  'ip':{'client':'Startups, inventors, technology companies','referral':'Accountants, business attorneys, investor networks, university tech transfer offices','challenge':'Educating clients on IP value, competing with established IP boutiques'},
+  'estate-planning':{'client':'Individuals, families, business owners','referral':'Financial advisors, CPAs, insurance agents','challenge':'Client procrastination, commoditization of simple wills'},
+  'real-estate':{'client':'Investors, developers, buyers, landlords','referral':'Real estate agents, title companies, mortgage brokers','challenge':'Transaction timing pressure, price competition on routine deals'},
+  'employment':{'client':'Employees (plaintiff) or businesses (defense)','referral':'HR consultants, employment attorneys, unions','challenge':'Contingency fee pressure plaintiff_side; retainer resistance defense-side'},
+  'personal-injury':{'client':'Injured individuals','referral':'Medical providers, chiropractors, other PI attorneys','challenge':'Case acquisition cost, competition from high_volume PI firms'},
+  'business':{'client':'Small to mid_size businesses, founders, investors','referral':'CPAs, investment bankers, business brokers, other attorneys','challenge':'Long cultivation cycles before engagement, generalist vs specialist tension'},
+  'other':{'client':'','referral':'','challenge':''}
+};
+function selPA(btn) {
+  document.querySelectorAll('.pa-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selArea = btn.dataset.area;
+  const h = paHints[selArea] || paHints['other'];
+  const cf = document.getElementById('a0b-fields');
+  if(cf) cf.classList.add('open');
+  if(h.client && document.getElementById('a0b-client')) document.getElementById('a0b-client').placeholder = h.client;
+  if(h.referral && document.getElementById('a0b-referral')) document.getElementById('a0b-referral').placeholder = h.referral;
+  if(h.challenge && document.getElementById('a0b-challenge')) document.getElementById('a0b-challenge').placeholder = h.challenge;
+}
+
+// ── SUPABASE CONFIG ──
+const SB_URL = 'https://qrvxkqxzzjtesafndhgv.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFydnhrcXh6emp0ZXNhZm5kaGd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMDY0MDQsImV4cCI6MjA5NTU4MjQwNH0.hH7KKOujq1fXTkfihRcaJaMQBXWEzH4QAcN9_4GWK_Q';
+
+// ── USER SESSION ──
+let currentUser = null;
+
+// ── FIX 1: Toast replaces alert() ──
+function toast(msg, duration=3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── AUTH UI ──
+function showAuthModal() {
+  const existing = document.getElementById('auth-modal');
+  if(existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'auth-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,22,40,0.95);z-index:999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#112240;border:1px solid rgba(201,168,76,0.4);border-radius:6px;padding:2.5rem;width:100%;max-width:420px;margin:1rem">
+      <div style="font-family:Georgia,serif;font-size:1.4rem;color:#e8c97a;margin-bottom:0.25rem;font-weight:600">PracticeEdge AI&#8482;</div>
+      <div style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:#8a6f2e;margin-bottom:1.5rem">Sign in to save your data across devices</div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem">
+        <label style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#9a9488">Email</label>
+        <input id="auth-email" type="email" placeholder="your@email.com" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.25);border-radius:3px;color:#e8e4dc;font-family:Georgia,serif;font-size:0.9rem;padding:0.6rem 0.75rem;width:100%">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1.5rem">
+        <label style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:#9a9488">Password</label>
+        <input id="auth-password" type="password" placeholder="Password" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.25);border-radius:3px;color:#e8e4dc;font-family:Georgia,serif;font-size:0.9rem;padding:0.6rem 0.75rem;width:100%">
+      </div>
+      <div id="auth-error" style="color:#e8a09a;font-size:0.8rem;margin-bottom:0.75rem;display:none"></div>
+      <button onclick="authSignIn()" style="background:#c9a84c;border:none;border-radius:3px;color:#0a1628;cursor:pointer;font-family:'Courier New',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;padding:0.8rem;text-transform:uppercase;width:100%;margin-bottom:0.5rem">Sign In</button>
+      <button onclick="authSignUp()" style="background:transparent;border:1px solid rgba(201,168,76,0.4);border-radius:3px;color:#c9a84c;cursor:pointer;font-family:'Courier New',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;padding:0.8rem;text-transform:uppercase;width:100%;margin-bottom:1rem">Create Account</button>
+      <button onclick="skipAuth()" style="background:transparent;border:none;color:#9a9488;cursor:pointer;font-family:'Courier New',monospace;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;width:100%">Continue without saving &#8594;</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function authSignIn() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; return; }
+  try {
+    const r = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ email, password })
+    });
+    const d = await r.json();
+    if(d.error_description) throw new Error(d.error_description);
+    if(d.error) throw new Error(d.error);
+    if(!d.access_token) throw new Error('No access token returned. Please check your email and password.');
+    const uid = d.user ? d.user.id : (d.id || null);
+    const uemail = d.user ? d.user.email : (d.email || email);
+    if(!uid) throw new Error('Could not retrieve user ID. Please try again.');
+    currentUser = { id: uid, email: uemail, token: d.access_token };
+    localStorage.setItem('sb_token', d.access_token);
+    localStorage.setItem('sb_uid', uid);
+    localStorage.setItem('sb_email', uemail);
+    document.getElementById('auth-modal').remove();
+    updateUserUI();
+    await loadUserData();
+    setTimeout(checkAndOfferMigration, 1500);
+    if (isAdmin()) setTimeout(healthCheck, 3000);
+  } catch(e) {
+    errEl.textContent = 'Sign in failed: ' + e.message;
+    errEl.style.display = 'block';
+    console.error('Auth error:', e);
+  }
+}
+
+async function authSignUp() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+  if (!email) { errEl.textContent = 'Please enter your email address.'; errEl.style.display = 'block'; return; }
+  if(password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+  try {
+    const r = await fetch(SB_URL + '/auth/v1/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ email, password })
+    });
+    const d = await r.json();
+    if(d.error_description) throw new Error(d.error_description);
+    if(d.error) throw new Error(d.error);
+    const uid = d.user ? d.user.id : (d.id || null);
+    const uemail = d.user ? d.user.email : (d.email || email);
+    if(d.access_token && uid) {
+      // Got token immediately — sign in now
+      currentUser = { id: uid, email: uemail, token: d.access_token };
+      localStorage.setItem('sb_token', d.access_token);
+      localStorage.setItem('sb_uid', uid);
+      localStorage.setItem('sb_email', uemail);
+      document.getElementById('auth-modal').remove();
+      updateUserUI();
+      await loadUserData();
+    } else {
+      // No token — try auto sign_in with new credentials
+      try {
+        const r2 = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+          body: JSON.stringify({ email, password })
+        });
+        const d2 = await r2.json();
+        const uid2 = d2.user ? d2.user.id : (d2.id || null);
+        const uemail2 = d2.user ? d2.user.email : (d2.email || email);
+        if(d2.access_token && uid2) {
+          currentUser = { id: uid2, email: uemail2, token: d2.access_token };
+          localStorage.setItem('sb_token', d2.access_token);
+          localStorage.setItem('sb_uid', uid2);
+          localStorage.setItem('sb_email', uemail2);
+          document.getElementById('auth-modal').remove();
+          updateUserUI();
+          await loadUserData();
+        } else {
+          // Email confirmation is required — tell user clearly instead of silently closing
+          errEl.textContent = 'Account created! Check your email for a confirmation link, then sign in here.';
+          errEl.style.color = '#2ecc71';
+          errEl.style.display = 'block';
+        }
+      } catch(e2) {
+        errEl.textContent = 'Account created! Please sign in with your new password.';
+        errEl.style.color = '#2ecc71';
+        errEl.style.display = 'block';
+        console.warn('Auto sign_in after signup failed:', e2);
+      }
+    }
+  } catch(e) {
+    errEl.textContent = 'Sign up failed: ' + e.message;
+    errEl.style.display = 'block';
+    console.error('Signup error:', e);
+  }
+}
+
+function skipAuth() { document.getElementById('auth-modal').remove(); }
+
+function updateUserUI() {
+  const nav = document.querySelector('.nav-logo');
+  if(nav && currentUser) {
+    const existing = document.getElementById('user-row');
+    if(existing) existing.remove();
+    const userRow = document.createElement('div');
+    userRow.id = 'user-row';
+    userRow.style.cssText = 'font-family:Courier New,monospace;font-size:0.58rem;color:#8a6f2e;margin-top:0.5rem;display:flex;align-items:center;justify-content:space-between';
+    var emailSpan = document.createElement('span');
+    emailSpan.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px';
+    emailSpan.textContent = currentUser.email;
+    var signOutBtn = document.createElement('button');
+    signOutBtn.textContent = 'Sign out';
+    signOutBtn.style.cssText = 'background:transparent;border:none;color:#9a9488;cursor:pointer;font-family:Courier New,monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.08em;padding:0';
+    signOutBtn.onclick = signOut;
+    userRow.appendChild(emailSpan);
+    userRow.appendChild(signOutBtn);
+    nav.appendChild(userRow);
+  }
+}
+
+async function signOut() {
+  localStorage.removeItem('sb_token');
+  localStorage.removeItem('sb_uid');
+  localStorage.removeItem('sb_email');
+  currentUser = null;
+  masterPCS = '';
+  location.reload();
+}
+
+// ── CLOUD DATA ──
+
+async function getValidToken() {
+  // Fast JWT expiry check
+  var _t = localStorage.getItem('sb_token');
+  if (_t) {
+    try {
+      var _p = JSON.parse(atob(_t.split('.')[1]));
+      if (_p.exp && Date.now() > _p.exp * 1000) {
+        localStorage.removeItem('sb_token');
+        currentUser = null;
+        toast('Session expired. Please sign in again.');
+        setTimeout(() => showAuth(), 1500);
+        return null;
+      }
+    } catch(e) {}
+  }
+  const token = localStorage.getItem('sb_token');
+  if (!token || !currentUser) return null;
+  try {
+    const r = await fetch(SB_URL + '/auth/v1/user', {
+      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + token}
+    });
+    if (r.ok) return token;
+    localStorage.removeItem('sb_token');
+    localStorage.removeItem('sb_uid');
+    localStorage.removeItem('sb_email');
+    currentUser = null;
+    toast('Your session has expired. Please sign in again.');
+    setTimeout(() => showAuthModal(), 1500);
+    return null;
+  } catch(e) { return token; }
+}
+
+async function saveToCloud(key, value) {
+  if(!currentUser) { localStorage.setItem(key, value); return; }
+  try {
+    const token = await getValidToken();
+    if (!token) return;
+    await fetch(SB_URL + '/rest/v1/practice_data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + token,
+        'Prefer': 'resolution=merge_duplicates,return=minimal'
+      },
+      body: JSON.stringify({ user_id: currentUser.id, data_key: key, data_value: value, updated_at: new Date().toISOString() })
+    });
+    localStorage.setItem(key, value);
+  } catch(e) {
+    localStorage.setItem(key, value);
+    console.warn('Cloud save failed, saved locally:', e.message);
+  }
+}
+
+async function loadUserData() {
+  if(!currentUser) return;
+  try {
+    const token = localStorage.getItem('sb_token');
+    const r = await fetch(SB_URL + '/rest/v1/practice_data?user_id=eq.' + currentUser.id, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    const rows = await r.json();
+    if(Array.isArray(rows)) {
+      rows.forEach(row => { localStorage.setItem(row.data_key, row.data_value); });
+      const pcs = localStorage.getItem('pcs');
+      if(pcs) { masterPCS = pcs; updatePCSBanners(); }
+    }
+  } catch(e) { console.warn('Cloud load failed:', e.message); }
+}
+
+// ── PCS STORAGE ──
+let masterPCS = localStorage.getItem('pcs') || '';
+function syncPCS(val) { masterPCS = val; saveToCloud('pcs', val); updatePCSBanners(); }
+function savePCS() {
+  const content = document.getElementById('a0-content');
+  if(content && content.textContent.trim()) {
+    masterPCS = content.textContent.trim();
+    saveToCloud('pcs', masterPCS);
+    updatePCSBanners();
+    // FIX 4: toast instead of alert()
+    toast('✓ Practice Capital Summary saved' + (currentUser ? ' to your cloud account.' : ' locally.'));
+  }
+}
+function updatePCSBanners() {
+  document.querySelectorAll('[id$="-pcs-banner"]').forEach(b => { if(masterPCS) b.classList.add('set'); });
+  const statusDash = document.getElementById('pcs-status-dash');
+  if(statusDash && masterPCS) statusDash.textContent = 'Practice Capital Summary active — system ready';
+  const saveBtn = document.getElementById('a0-save');
+  if(saveBtn) saveBtn.style.display = 'block';
+}
+if(masterPCS) updatePCSBanners();
+
+function clearAll() {
+  if(confirm('Clear all saved data including your Practice Capital Summary?')) {
+    localStorage.clear();
+    masterPCS = '';
+    updatePCSBanners();
+    location.reload();
+  }
+}
+
+// ── FIX 2 & 3: Proper auth init with getSession + onAuthStateChange ──
+
+
+// ── ERROR MONITORING ──
+var _adminEmails = ['cssceo@yahoo.com', 'cssceo@ymail.com', 'mpapecpi@yahoo.com'];
+
+function isAdmin() {
+  return currentUser && _adminEmails.indexOf(currentUser.email) > -1;
+}
+
+async function healthCheck() {
+  try {
+    const r = await fetch('https://anthropic-proxy.cssceo.workers.dev', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:5,messages:[{role:'user',content:'OK'}]})
+    });
+    if (!r.ok) {
+      const body = await r.json().catch(() => ({}));
+      if (isAdmin()) showAdminAlert('API error: HTTP ' + r.status + ' — ' + (body.error?.message || 'Unknown'));
+    }
+  } catch(e) {
+    if (isAdmin()) showAdminAlert('API unreachable: ' + e.message);
+  }
+}
+
+function showAdminAlert(msg) {
+  const existing = document.getElementById('admin-alert');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'admin-alert';
+  div.style.cssText = 'position:fixed;top:60px;right:16px;background:#e74c3c;color:white;border-radius:4px;padding:10px 16px;font-family:Courier New,monospace;font-size:0.7rem;z-index:9999;max-width:300px;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
+  div.textContent = 'Admin: ' + msg;
+  const close = document.createElement('button');
+  close.textContent = '✕';
+  close.style.cssText = 'position:absolute;top:6px;right:8px;background:transparent;border:none;color:white;cursor:pointer;font-size:12px';
+  close.onclick = () => div.remove();
+  div.appendChild(close);
+  document.body.appendChild(div);
+}
+
+// ── RATE LIMITING ──
+var _lastGenerateTime = 0;
+var _generateCooldown = 3000;
+function canGenerate() {
+  var now = Date.now();
+  if (now - _lastGenerateTime < _generateCooldown) return false;
+  _lastGenerateTime = now;
+  return true;
+}
+
+
+// ── STREAMING OUTPUT ──
+async function claudeStream(outputElementId, sys, usr) {
+  const outputEl = document.getElementById(outputElementId);
+  if (!outputEl) return;
+  outputEl.textContent = '';
+  
+  let fullText = '';
+  
+  try {
+    const r = await fetch('https://anthropic-proxy.cssceo.workers.dev', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        stream: true,
+        system: sys,
+        messages: [{role: 'user', content: usr}]
+      })
+    });
+    
+    if (!r.ok) {
+      const errBody = await r.json().catch(() => ({}));
+      throw new Error(errBody.error?.message || 'HTTP ' + r.status);
+    }
+    
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+            fullText += parsed.delta.text;
+            outputEl.textContent = fullText;
+          }
+        } catch(e) {}
+      }
+    }
+    return fullText;
+  } catch(e) {
+    outputEl.innerHTML = 'Error generating output. Please try again.\n\n' + e.message;
+    console.error('Stream error:', e);
+    throw e;
+  }
+}
+
+window.addEventListener('beforeunload', function() {
+  // Cleanup on exit
+  localStorage.setItem('pcs_last_seen', new Date().toISOString());
+});
+
+window.addEventListener('load', async () => {
+  const token = localStorage.getItem('sb_token');
+  const uid = localStorage.getItem('sb_uid');
+  const email = localStorage.getItem('sb_email');
+
+  if(token && uid) {
+    // Validate the token is still active by calling getUser
+    try {
+      const r = await fetch(SB_URL + '/auth/v1/user', {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token }
+      });
+      if(r.ok) {
+        const userData = await r.json();
+        currentUser = { id: uid, email: userData.email || email, token };
+        updateUserUI();
+        await loadUserData();
+      } else {
+        // Token expired — clear and show modal
+        localStorage.removeItem('sb_token');
+        localStorage.removeItem('sb_uid');
+        localStorage.removeItem('sb_email');
+        setTimeout(() => showAuthModal(), 800);
+      }
+    } catch(e) {
+      // Network error — trust local token and proceed
+      currentUser = { id: uid, email, token };
+      updateUserUI();
+      await loadUserData();
+    }
+  } else {
+    setTimeout(() => showAuthModal(), 800);
+  }
+});
+
+// ── COPY ──
+function copyOut(id) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  }).catch(e => console.error('Copy failed:', e));
+}
+
+// ── SHOW OUTPUT ──
+function showOut(outId, contentId, text) {
+  const out = document.getElementById(outId);
+  const content = document.getElementById(contentId);
+  if(!out || !content) return;
+  content.textContent = text;
+  out.classList.add('show');
+  out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── LOCK BTN ──
+function lock(id, state) {
+  const btn = document.getElementById(id);
+  if(!btn) return;
+  btn.disabled = state;
+  if(state) { btn.dataset.orig = btn.textContent; btn.textContent = 'Generating…'; }
+  else if(btn.dataset.orig) btn.textContent = btn.dataset.orig;
+}
+
+
+// ── STREAMING OUTPUT ──
+async function callClaudeStream(sys, usr, contentId, outId, btnId) {
+  const out = document.getElementById(outId);
+  const content = document.getElementById(contentId);
+  const btn = document.getElementById(btnId);
+  if (out) out.classList.add('show');
+  if (content) content.textContent = '';
+  
+  try {
+    const r = await fetch('https://anthropic-proxy.cssceo.workers.dev', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        stream: true,
+        system: sys,
+        messages: [{role: 'user', content: usr}]
+      })
+    });
+
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({error:{message:'Request failed'}}));
+      if (content) content.textContent = 'Error: ' + (err.error?.message || 'Unknown error');
+      return;
+    }
+
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, {stream: true});
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+              fullText += parsed.delta.text;
+              if (content) content.textContent = fullText;
+            }
+          } catch(e) {}
+        }
+      }
+    }
+    return fullText;
+
+  } catch(e) {
+    if (content) content.textContent = 'Connection error. Please try again.\n\n' + e.message;
+    console.error('Streaming error:', e);
+    return null;
+  } finally {
+    if (btn) { const b = document.getElementById(btnId); if(b){b.disabled=false; if(b.dataset.orig) b.textContent=b.dataset.orig;} }
+  }
+}
+
+// ── CLAUDE API — FIX 7 (error logging) & FIX 8 (max_tokens 4096) ──
+async function claude(sys, usr) {
+  const r = await fetch('https://anthropic-proxy.cssceo.workers.dev', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: sys,
+      messages: [{ role: 'user', content: usr }]
+    })
+  });
+  const d = await r.json();
+  if(d.error) {
+    console.error('Claude API error:', d.error);
+    throw new Error(d.error.message);
+  }
+  return d.content.map(b => b.text||'').join('');
+}
+
+// ── SYSTEM PROMPT BASE ──
+const BASE_SYS = `You are PracticeEdge AI™ — a practice development intelligence system built specifically for solo attorneys launching a practice. You produce precise, actionable, specific intelligence. Never use generic advice. Every output must be specific to the attorney, their practice area, geography, and situation provided. Write in a direct, peer_to_peer tone. No preamble. No filler. No bullet padding. Structured sections with clear headers. Be the advisor the attorney cannot afford to hire.`;
+
+// ── GENERIC AGENT RUNNER ──
+async function genAgent(agentId) {
+  if (!canGenerate()) return;
+  const btnId = agentId + '-btn';
+  lock(btnId, true);
+  try {
+    const pcs = masterPCS || '';
+    let sys = BASE_SYS, usr = '';
+
+    if(agentId === 'a0') {
+      usr = `Generate a Practice Capital Summary for this attorney:
+Name: ${v('a0-name')}
+Years in practice: ${v('a0-years')}
+Practice areas: ${v('a0-areas')}
+Prior firm and role: ${v('a0-firm')}
+Geographic market: ${v('a0-geo')}
+Target billing rate: ${v('a0-rate')}
+Target client types: ${v('a0-clients')}
+Portable clients (will follow): ${v('a0-portable')}
+Clients who might follow: ${v('a0-might')}
+Referral sources: ${v('a0-referrals')}
+Representative matters: ${v('a0-matters')}
+Strongest competencies: ${v('a0-strengths')}
+Areas to refer out: ${v('a0-gaps')}
+Year 1 revenue goal: ${v('a0-goal')}
+
+Produce a comprehensive Practice Capital Summary with these sections:
+ATTORNEY PROFILE — who you are and what you bring
+PORTABLE CLIENT BASE — revenue potential and likelihood assessment
+REFERRAL NETWORK — sources, relationships, activation priority
+DIFFERENTIATION — what makes you distinctive and hireable
+MARKET POSITIONING — where you fit and who you beat
+REVENUE BASELINE — Year 1 realistic projection with monthly targets
+IMMEDIATE PRIORITIES — first 30 days action items`;
+      const a0out = document.getElementById('a0-out');
+      const a0content = document.getElementById('a0-content');
+      if (a0out) a0out.classList.add('show');
+      const a0text = await claudeStream('a0-content', sys, usr);
+      if (a0text) { masterPCS = ''; }
+      document.getElementById('a0-save').style.display = 'block';
+    }
+    else if(agentId === 'a0b') {
+      usr = `Generate a Niche Intelligence Profile:
+Practice Area: ${selArea}
+Specialization: ${v('a0b-specific') || 'General ' + selArea}
+Geographic Market: ${v('a0b-geo')}
+Primary Client Type: ${v('a0b-client')}
+Top Referral Source Types: ${v('a0b-referral') || 'Not specified'}
+Biggest BD Challenge: ${v('a0b-challenge') || 'Not specified'}
+Practice Capital Summary: ${v('a0b-pcs') || pcs}
+
+Sections required:
+1. NICHE MARKET REALITY
+2. IDEAL CLIENT PROFILE
+3. REFERRAL SOURCE PRIORITY LIST — 5 most valuable types
+4. VISIBILITY CHANNELS — 3 most effective for this practice area and market
+5. COMPETITIVE DIFFERENTIATORS
+6. NICHE-SPECIFIC BD LANGUAGE — 2-3 sentences the attorney can use verbatim`;
+      (async()=>{const a0bout = document.getElementById('a0b-out'); if(a0bout){a0bout.classList.add('show');} await claudeStream('a0b-content', sys, usr);})();
+    }
+    else if(agentId === 'a1') {
+      usr = `Generate a Market Intelligence and Positioning System:
+Practice Capital Summary: ${v('a1-pcs') || pcs}
+Target client types: ${v('a1-targets')}
+Geographic focus: ${v('a1-geo')}
+Companies / industries to target: ${v('a1-companies')}
+Why they launched their firm: ${v('a1-why')}
+
+Produce:
+1. 40-TARGET CLIENT LIST
+2. REFERRAL SOURCE MAP — Top 15
+3. LINKEDIN PROFILE DRAFT — Headline, About, Featured
+4. ATTORNEY BIO — 200 words third_person
+5. ELEVATOR PITCH — 30-second and 2-minute
+6. ONE-PAGER FRAMEWORK`;
+      (async()=>{const a1out = document.getElementById('a1-out'); if(a1out){a1out.classList.add('show');} await claudeStream('a1-content', sys, usr);})();
+    }
+    else if(agentId === 'a2') {
+      usr = `Generate personalized outreach messages:
+Contact name and title: ${v('a2-contact')}
+How the attorney knows them: ${v('a2-know')}
+Trigger event: ${v('a2-trigger')}
+Desired outcome: ${v('a2-outcome')}
+Practice Capital Summary: ${v('a2-pcs') || pcs}
+
+Produce:
+1. EMAIL VERSION — Subject + body, under 150 words
+2. LINKEDIN MESSAGE — under 75 words
+3. TEXT MESSAGE — under 50 words
+4. FOLLOW-UP — if no response after 7 days`;
+      (async()=>{const a2out = document.getElementById('a2-out'); if(a2out){a2out.classList.add('show');} await claudeStream('a2-content', sys, usr);})();
+    }
+    else if(agentId === 'a2-doc') {
+      usr = `Generate a ${v('a2-doc-type') || 'practice document'}:
+Target audience: ${v('a2-doc-target')}
+Their situation: ${v('a2-doc-needs')}
+Document type: ${v('a2-doc-type')}
+Practice Capital Summary: ${v('a2-doc-pcs') || pcs}
+Produce a complete, ready_to_use document.`;
+      (async()=>{const a2_docout = document.getElementById('a2-doc-out'); if(a2_docout){a2_docout.classList.add('show');} await claudeStream('a2-doc-content', sys, usr);})();
+    }
+    else if(agentId === 'a3') {
+      usr = `Generate a Client Meeting Intelligence Brief:
+Prospect/client: ${v('a3-name')}
+Meeting type: ${v('a3-meeting')}
+Their situation: ${v('a3-situation')}
+Matter type: ${v('a3-matter')}
+Practice Capital Summary: ${v('a3-pcs') || pcs}
+
+Produce:
+1. MEETING OBJECTIVES
+2. INTELLIGENCE BRIEF
+3. OPENING
+4. KEY QUESTIONS — 5-7
+5. LIKELY OBJECTIONS with responses
+6. CLOSE`;
+      (async()=>{const a3out = document.getElementById('a3-out'); if(a3out){a3out.classList.add('show');} await claudeStream('a3-content', sys, usr);})();
+    }
+    else if(agentId === 'a3-fee') {
+      usr = `Generate a Fee Structure Recommendation:
+Matter type: ${v('a3-fee-matter')}
+Client type: ${v('a3-fee-client')}
+Hourly rate: $${v('a3-fee-rate')}
+Estimated hours: ${v('a3-fee-hours')}
+Client fee sensitivity: ${v('a3-fee-sens')}
+Produce: recommended fee structure, rationale, how to present it, and how to respond to price pushback.`;
+      (async()=>{const a3_feeout = document.getElementById('a3-fee-out'); if(a3_feeout){a3_feeout.classList.add('show');} await claudeStream('a3-fee-content', sys, usr);})();
+    }
+    else if(agentId === 'a4') {
+      usr = `Generate a Weekly Intelligence Brief:
+Outreach sent: ${v('a4-outreach')}
+Conversations and outcomes: ${v('a4-convos')}
+Active pipeline: ${v('a4-pipeline')}
+Where stuck: ${v('a4-stuck')}
+Produce: prioritized action plan for next week, pipeline analysis, specific Monday–Friday recommendations, and direct coaching on what is stalled.`;
+      (async()=>{const a4out = document.getElementById('a4-out'); if(a4out){a4out.classList.add('show');} await claudeStream('a4-content', sys, usr);})();
+    }
+    else if(agentId === 'a4-coach') {
+      usr = `Provide practice launch coaching:
+Issue: ${v('a4-coach-issue')}
+Context: ${v('a4-coach-pcs') || pcs}
+Be direct, specific, and actionable. Tell them exactly what to do and why.`;
+      (async()=>{const a4_coachout = document.getElementById('a4-coach-out'); if(a4_coachout){a4_coachout.classList.add('show');} await claudeStream('a4-coach-content', sys, usr);})();
+    }
+    else if(agentId === 'a5') {
+      usr = `Draft a legal document:
+Document type: ${v('a5-type')}
+Jurisdiction: ${v('a5-jx')}
+Tone: ${v('a5-tone')}
+Purpose: ${v('a5-purpose')}
+Parties, terms, amounts: ${v('a5-details')}
+Special requirements: ${v('a5-special')}
+Produce a complete first draft. Include a review checklist noting jurisdiction_specific items to verify.`;
+      (async()=>{const a5out = document.getElementById('a5-out'); if(a5out){a5out.classList.add('show');} await claudeStream('a5-content', sys, usr);})();
+    }
+    else if(agentId === 'a6') {
+      usr = `Draft a client communication:
+Client: ${v('a6-client')}
+Type: ${v('a6-type')}
+Tone: ${v('a6-tone')}
+What happened: ${v('a6-what')}
+Key message: ${v('a6-key')}
+Next steps: ${v('a6-next')}
+Practice Capital Summary: ${v('a6-pcs') || pcs}`;
+      (async()=>{const a6out = document.getElementById('a6-out'); if(a6out){a6out.classList.add('show');} await claudeStream('a6-content', sys, usr);})();
+    }
+    else if(agentId === 'a7') {
+      usr = `Draft a collections or billing communication:
+Client: ${v('a7-client')}
+Stage: ${v('a7-stage')}
+Amount: $${v('a7-amount')}
+Days past due: ${v('a7-days')}
+Client explanation: ${v('a7-explain') || 'None provided'}
+Preferred outcome: ${v('a7-outcome')}`;
+      (async()=>{const a7out = document.getElementById('a7-out'); if(a7out){a7out.classList.add('show');} await claudeStream('a7-content', sys, usr);})();
+    }
+    else if(agentId === 'a8') {
+      usr = `Generate a complete deadline chain and docket checklist:
+Matter type: ${v('a8-matter')}
+Jurisdiction: ${v('a8-jx')}
+Triggering event: ${v('a8-trigger')}
+Triggering date: ${v('a8-date')}
+Client: ${v('a8-client')}
+Matter number: ${v('a8-matter-num')}
+Produce: deadline chain, formatted docket checklist, critical dates memo, and verification note.`;
+      (async()=>{const a8out = document.getElementById('a8-out'); if(a8out){a8out.classList.add('show');} await claudeStream('a8-content', sys, usr);})();
+    }
+    else if(agentId === 'a9') {
+      usr = `Draft a referral relationship message:
+Referral source: ${v('a9-source')}
+Communication type: ${v('a9-type')}
+Last contact: ${v('a9-last')}
+Context: ${v('a9-context')}
+Practice Capital Summary: ${v('a9-pcs') || pcs}`;
+      (async()=>{const a9out = document.getElementById('a9-out'); if(a9out){a9out.classList.add('show');} await claudeStream('a9-content', sys, usr);})();
+    }
+    else if(agentId === 'a10') {
+      usr = `Generate thought leadership content:
+Content type: ${v('a10-type')}
+Audience: ${v('a10-audience')}
+Length: ${v('a10-length')}
+Topic: ${v('a10-topic')}
+Perspective: ${v('a10-angle')}
+Relevant experience: ${v('a10-exp')}
+Practice Capital Summary: ${v('a10-pcs') || pcs}`;
+      (async()=>{const a10out = document.getElementById('a10-out'); if(a10out){a10out.classList.add('show');} await claudeStream('a10-content', sys, usr);})();
+    }
+    else if(agentId === 'a11') {
+      usr = `Generate a new matter intake package:
+Client: ${v('a11-client')}
+Matter type: ${v('a11-matter')}
+Complexity: ${v('a11-complex')}
+Fee structure: ${v('a11-fee')}
+Client description: ${v('a11-desc')}
+Adverse parties: ${v('a11-adverse')}
+Red flags: ${v('a11-flags')}
+Produce: intake questionnaire, conflict check list, scope outline, engagement letter draft, and red flag analysis.`;
+      (async()=>{const a11out = document.getElementById('a11-out'); if(a11out){a11out.classList.add('show');} await claudeStream('a11-content', sys, usr);})();
+    }
+    else if(agentId === 'a12') {
+      usr = `Generate a monthly financial intelligence brief:
+Month: ${v('a12-month')} (Month ${v('a12-monthnum')})
+Fees billed: $${v('a12-billed')} | Collected: $${v('a12-collected')}
+Overhead: $${v('a12-overhead')} | Hours worked: ${v('a12-worked')} | Billed: ${v('a12-billed-hrs')}
+Year 1 target: $${v('a12-target')}
+AR: ${v('a12-ar')}
+Client breakdown: ${v('a12-clients')}
+Produce: realization rate, client profitability ranking, collections priority list, YTD pace, one financial recommendation.`;
+      (async()=>{const a12out = document.getElementById('a12-out'); if(a12out){a12out.classList.add('show');} await claudeStream('a12-content', sys, usr);})();
+    }
+    else if(agentId === 'a13') {
+      usr = `Prepare a difficult conversation guide:
+Client: ${v('a13-client')}
+Type: ${v('a13-type')}
+Emotional state: ${v('a13-emotion')}
+What to communicate: ${v('a13-what')}
+Desired outcome: ${v('a13-outcome')}
+Biggest concern: ${v('a13-concern')}
+Produce: opening script, key messages, handling reactions, what not to say, close.`;
+      (async()=>{const a13out = document.getElementById('a13-out'); if(a13out){a13out.classList.add('show');} await claudeStream('a13-content', sys, usr);})();
+    }
+    else if(agentId === 'a14') {
+      usr = `Run a conflict check:
+Prospective client: ${v('a14-client')}
+Adverse parties: ${v('a14-adverse')}
+Related parties: ${v('a14-related')}
+Matter type: ${v('a14-matter')}
+Current/recent client list: ${v('a14-clients')}`;
+      (async()=>{const a14out = document.getElementById('a14-out'); if(a14out){a14out.classList.add('show');} await claudeStream('a14-content', sys, usr);})();
+    }
+    else if(agentId === 'a14-lat') {
+      usr = `Run a lateral conflict screen:
+Former firm: ${v('a14-firm')}
+Matters at former firm: ${v('a14-firm-matters')}
+New matter: ${v('a14-new-matter')}`;
+      (async()=>{const a14_latout = document.getElementById('a14-lat-out'); if(a14_latout){a14_latout.classList.add('show');} await claudeStream('a14-lat-content', sys, usr);})();
+    }
+    else if(agentId === 'a14-waiver') {
+      usr = `Draft a conflict waiver letter:
+Client: ${v('a14-waiver-client')}
+Nature of conflict: ${v('a14-conflict-nature')}
+State: ${v('a14-state-waiver')}`;
+      (async()=>{const a14_waiverout = document.getElementById('a14-waiver-out'); if(a14_waiverout){a14_waiverout.classList.add('show');} await claudeStream('a14-waiver-content', sys, usr);})();
+    }
+    else if(agentId === 'a15') {
+      usr = `Generate a matter closing package:
+Client: ${v('a15-client')} | Matter: ${v('a15-matter')} | Outcome: ${v('a15-outcome')}
+Trust balance: $${v('a15-trust')} | Outstanding fees: ${v('a15-fees')}
+Documents to return: ${v('a15-docs')} | State: ${v('a15-state')}`;
+      (async()=>{const a15out = document.getElementById('a15-out'); if(a15out){a15out.classList.add('show');} await claudeStream('a15-content', sys, usr);})();
+    }
+    else if(agentId === 'a16') {
+      usr = `Generate a practice continuity and succession plan:
+Attorney: ${v('a16-name')} | Backup: ${v('a16-backup') || 'Not yet identified'}
+Active matters: ${v('a16-matters')} | Software: ${v('a16-software')}
+Trust institution: ${v('a16-trust')} | Balance: $${v('a16-balance')}`;
+      (async()=>{const a16out = document.getElementById('a16-out'); if(a16out){a16out.classList.add('show');} await claudeStream('a16-content', sys, usr);})();
+    }
+    else if(agentId === 'a17') {
+      usr = `Generate a CLE compliance plan:
+State: ${v('a17-state')} | Admitted: ${v('a17-admitted')} | Period: ${v('a17-period')}
+Credits: ${v('a17-credits')} | Practice areas: ${v('a17-practice')} | Specialty: ${v('a17-specialty')||'None'}`;
+      (async()=>{const a17out = document.getElementById('a17-out'); if(a17out){a17out.classList.add('show');} await claudeStream('a17-content', sys, usr);})();
+    }
+    else if(agentId === 'a18') {
+      usr = `Generate trust accounting procedures:
+State: ${v('a18-state')} | Bank: ${v('a18-bank')} | Fees: ${v('a18-fees')} | Software: ${v('a18-software')}
+Questions: ${v('a18-questions')||'None'}`;
+      (async()=>{const a18out = document.getElementById('a18-out'); if(a18out){a18out.classList.add('show');} await claudeStream('a18-content', sys, usr);})();
+    }
+    else if(agentId === 'a19') {
+      usr = `Generate technology risk report:
+Stack: ${v('a19-stack')} | Cloud data: ${v('a19-cloud')}
+State: ${v('a19-state')} | Remote: ${v('a19-remote')} | Concerns: ${v('a19-concerns')||'None'}`;
+      (async()=>{const a19out = document.getElementById('a19-out'); if(a19out){a19out.classList.add('show');} await claudeStream('a19-content', sys, usr);})();
+    }
+    else if(agentId === 'a20') {
+      usr = `Review for advertising compliance:
+State: ${v('a20-state')} | Material: ${v('a20-type')}
+Content: ${v('a20-content-in')} | Concerns: ${v('a20-concerns')||'None'}`;
+      (async()=>{const a20out = document.getElementById('a20-out'); if(a20out){a20out.classList.add('show');} await claudeStream('a20-content', sys, usr);})();
+    }
+    else if(agentId === 'a21') {
+      usr = `Generate launch pricing strategy:
+Rate: $${v('a21-rate')} | Market: ${v('a21-market')}
+Concern: ${v('a21-concern')} | Matters: ${v('a21-matters')} | PCS: ${v('a21-pcs')||pcs}`;
+      (async()=>{const a21out = document.getElementById('a21-out'); if(a21out){a21out.classList.add('show');} await claudeStream('a21-content', sys, usr);})();
+    }
+    else if(agentId === 'a22') {
+      usr = `Generate practice intelligence calibration:
+PCS: ${v('a22-pcs')||pcs} | Month: ${v('a22-month')}
+Outreach: ${v('a22-outreach')} | Meetings: ${v('a22-meetings')}
+Fees: ${v('a22-fees')} | Market signals: ${v('a22-market')}`;
+      (async()=>{const a22out = document.getElementById('a22-out'); if(a22out){a22out.classList.add('show');} await claudeStream('a22-content', sys, usr);})();
+    }
+
+  } catch(e) {
+    const outId = agentId + '-out';
+    const contentId = agentId + '-content';
+    showOut(outId, contentId, 'Error generating output. Please try again.\n\n' + e.message);
+    console.error('genAgent error [' + agentId + ']:', e);
+  } finally {
+    lock(btnId, false);
+  }
+}
+
+// ── MARKET ENTRY GENERATORS ──
+async function genMI() {
+  const btn=event.target; btn.disabled=true; btn.dataset.orig=btn.textContent; btn.textContent='Generating…';
+  const city=document.getElementById('mi-city').value, practice=document.getElementById('mi-practice').value;
+  if(!city||!practice){toast('Please enter target city and practice area.');btn.disabled=false;btn.textContent=btn.dataset.orig;return;}
+  try {
+    const usr=`Generate a Market Intelligence Report for a ${practice} attorney entering ${city}:
+Entry context: ${document.getElementById('mi-context').value||'New market entry'}
+Current network: ${document.getElementById('mi-network').value||'Minimal'}
+PCS: ${document.getElementById('mi-pcs').value||masterPCS}
+
+Sections: MARKET SNAPSHOT | CLIENT ACQUISITION LANDSCAPE | COMPETITIVE POSITIONING | KEY ORGANIZATIONS (5) | REFERRAL ECOSYSTEM MAP | MARKET ENTRY RISKS (3)`;
+    showOut('mi-out','mi-content', await claude(BASE_SYS,usr));
+  } catch(e){showOut('mi-out','mi-content','Error. Please try again.\n\n'+e.message);console.error(e);}
+  finally{btn.disabled=false;btn.textContent=btn.dataset.orig;}
+}
+
+async function genNE() {
+  const btn=event.target; btn.disabled=true; btn.dataset.orig=btn.textContent; btn.textContent='Generating…';
+  const city=document.getElementById('ne-city').value, practice=document.getElementById('ne-practice').value;
+  if(!city||!practice){toast('Please enter target city and practice area.');btn.disabled=false;btn.textContent=btn.dataset.orig;return;}
+  try {
+    const usr=`Generate a Network Entry Strategy for a ${practice} attorney entering ${city}:
+Known contacts: ${document.getElementById('ne-contacts').value||'None'}
+Bar associations: ${document.getElementById('ne-bars').value||'TBD'}
+Differentiators: ${document.getElementById('ne-diff').value||'Not specified'}
+
+Sections: NETWORK ENTRY SEQUENCE | HIGHEST-LEVERAGE FIRST CONTACTS (5) | BAR ASSOCIATION ACTIVATION | WARM NETWORK BRIDGE | 30-DAY CHECKLIST`;
+    showOut('ne-out','ne-content', await claude(BASE_SYS,usr));
+  } catch(e){showOut('ne-out','ne-content','Error. Please try again.\n\n'+e.message);console.error(e);}
+  finally{btn.disabled=false;btn.textContent=btn.dataset.orig;}
+}
+
+async function genND() {
+  const btn=event.target; btn.disabled=true; btn.dataset.orig=btn.textContent; btn.textContent='Generating…';
+  const city=document.getElementById('nd-city').value, practice=document.getElementById('nd-practice').value;
+  if(!city||!practice){toast('Please enter target city and practice area.');btn.disabled=false;btn.textContent=btn.dataset.orig;return;}
+  try {
+    const usr=`Generate a 90-Day Market Entry Plan for a ${practice} attorney entering ${city}:
+Start: ${document.getElementById('nd-start').value||'Immediate'}
+Month 3 target: ${document.getElementById('nd-revenue').value||'Not specified'}
+BD hours/week: ${document.getElementById('nd-hours').value||'10'}
+Context: ${document.getElementById('nd-context').value||masterPCS}
+
+Structure: DAYS 1-30 (week by week) | DAYS 31-60 | DAYS 61-90 | CRITICAL SUCCESS FACTORS | EARLY WARNING SIGNALS`;
+    showOut('nd-out','nd-content', await claude(BASE_SYS,usr));
+  } catch(e){showOut('nd-out','nd-content','Error. Please try again.\n\n'+e.message);console.error(e);}
+  finally{btn.disabled=false;btn.textContent=btn.dataset.orig;}
+}
+
+// ── VALUE HELPER ──
+function v(id) { const el=document.getElementById(id); return el ? el.value.trim() : ''; }
+
+if(masterPCS) updatePCSBanners();
+
+// ── LOCAL DATA MIGRATION ──
+async function checkAndOfferMigration() {
+  if (!currentUser) return;
+  
+  // Check if there is local data worth migrating
+  var localKeys = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    // Skip auth keys and already_synced keys
+    if (key && !key.startsWith('sb_') && key !== 'pcs_synced') {
+      var val = localStorage.getItem(key);
+      if (val && val.length > 10) {
+        localKeys.push(key);
+      }
+    }
+  }
+  
+  // Check if there is meaningful local data (pcs or agent outputs)
+  var hasPCS = !!localStorage.getItem('pcs');
+  var hasOutputs = localKeys.some(function(k) { 
+    return k.includes('content') || k.includes('pcs') || k === 'pcs';
+  });
+  
+  if ((!hasPCS && !hasOutputs) || localStorage.getItem('pcs_synced') === currentUser.id) return;
+  
+  // Show migration banner
+  var existing = document.getElementById('migration-banner');
+  if (existing) return;
+  
+  var banner = document.createElement('div');
+  banner.id = 'migration-banner';
+  banner.style.cssText = 'position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#112240;border:1px solid rgba(201,168,76,0.6);border-radius:6px;padding:1rem 1.5rem;z-index:500;max-width:460px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,0.4);display:flex;align-items:flex_start;gap:1rem;';
+  banner.innerHTML = '<div style="color:#c9a84c;font-size:1.1rem;flex-shrink:0;margin-top:2px">&#9670;</div>'
+    + '<div style="flex:1">'
+    + '<div style="font-family:Georgia,serif;font-size:0.9rem;color:#e8c97a;font-weight:600;margin-bottom:4px">Saved work found on this device</div>'
+    + '<div style="font-size:0.78rem;color:#9a9488;line-height:1.5;margin-bottom:10px">You have inputs and outputs saved in this browser from before you created your account. Upload them to your account now so they are available on any device.</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<button onclick="runMigration()" id="migrate-btn" style="background:#c9a84c;border:none;border-radius:3px;color:#0a1628;cursor:pointer;font-family:Courier New,monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;padding:0.5rem 1rem;text-transform:uppercase">Upload to My Account</button>'
+    + '<button onclick="dismissMigration()" style="background:transparent;border:1px solid rgba(201,168,76,0.3);border-radius:3px;color:#9a9488;cursor:pointer;font-family:Courier New,monospace;font-size:0.65rem;letter-spacing:0.08em;padding:0.5rem 1rem;text-transform:uppercase">Not Now</button>'
+    + '</div></div>';
+  document.body.appendChild(banner);
+}
+
+async function runMigration() {
+  var btn = document.getElementById('migrate-btn');
+  if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
+  
+  var migrated = 0;
+  var errors = 0;
+  
+  try {
+    // Migrate all non_auth localStorage keys
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (!key || key.startsWith('sb_') || key === 'pcs_synced') continue;
+      var val = localStorage.getItem(key);
+      if (!val || val.length < 5) continue;
+      
+      try {
+        var token = localStorage.getItem('sb_token');
+        await fetch(SB_URL + '/rest/v1/practice_data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SB_KEY,
+            'Authorization': 'Bearer ' + token,
+            'Prefer': 'resolution=merge_duplicates,return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            data_key: key,
+            data_value: val,
+            updated_at: new Date().toISOString()
+          })
+        });
+        migrated++;
+      } catch(e) {
+        errors++;
+      }
+    }
+    
+    // Mark as synced for this user
+    localStorage.setItem('pcs_synced', currentUser.id);
+    
+    var banner = document.getElementById('migration-banner');
+    if (banner) {
+      banner.innerHTML = '<div style="color:#2ecc71;font-size:1.1rem;flex-shrink:0">&#10003;</div>'
+        + '<div><div style="font-family:Georgia,serif;font-size:0.9rem;color:#e8c97a;font-weight:600;margin-bottom:4px">Upload complete</div>'
+        + '<div style="font-size:0.78rem;color:#9a9488;line-height:1.5">' + migrated + ' items uploaded to your account. Your work is now saved and accessible on any device.</div></div>';
+      setTimeout(function() { 
+        var b = document.getElementById('migration-banner'); 
+        if (b) b.remove(); 
+      }, 4000);
+    }
+  } catch(e) {
+    var btn2 = document.getElementById('migrate-btn');
+    if (btn2) { btn2.textContent = 'Upload Failed — Try Again'; btn2.disabled = false; }
+  }
+}
+
+function dismissMigration() {
+  var banner = document.getElementById('migration-banner');
+  if (banner) banner.remove();
+}
+
+</script>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#0a1628;border-top:1px solid rgba(201,168,76,0.2);padding:6px 24px;display:flex;align-items:center;justify-content:center;z-index:100">
+  <span style="font-family:'Courier New',monospace;font-size:10px;color:rgba(201,168,76,0.5);letter-spacing:0.08em">PracticeEdge AI™ &nbsp;·&nbsp; Conceived, designed, and developed by Mary Newell Pape &nbsp;·&nbsp; © 2026 Mary Newell Pape. All rights reserved.</span>
+</div>
+</body>
+</html>
